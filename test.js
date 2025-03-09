@@ -14,6 +14,10 @@ class mytag extends HTMLElement {
 
         const style = document.createElement("style");
         console.log(style.isConnected);
+
+        const myattr = this.getAttribute("myattr");
+        alert(myattr);
+
         style.textContent = `
             div {
                 position: fixed;

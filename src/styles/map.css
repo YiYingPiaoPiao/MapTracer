@@ -1,0 +1,9 @@
+.land {
+    fill: rgba(88, 88, 88, 0.5);
+}
+
+.visited {
+    fill: #000000;
+
+    cursor: pointer;
+}

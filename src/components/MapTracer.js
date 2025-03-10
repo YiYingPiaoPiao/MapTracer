@@ -1,3 +1,5 @@
+import { MapTracer_World } from "./MapWorld.js";
+
 class MapTracer extends HTMLElement {
 
     constructor () {
@@ -10,8 +12,12 @@ class MapTracer extends HTMLElement {
             mode: "open"
         });
 
-        const MapBox = document.createElement("div");
-        MapBox.setAttribute("id", "MapTracer-MapBox");
+        const MapBox_World = document.createElement("div");
+        MapBox_World.setAttribute("id", "MapTracer-MapBox-World");
+        MapBox_World.appendChild(MapTracer_World.init());
+
+        const MapBox_Country = document.createElement("div");
+        MapBox_Country.setAttribute("id", "MapTracer-MapBox-Country");
 
         shadow.appendChild(MapBox);
     }

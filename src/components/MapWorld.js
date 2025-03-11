@@ -1,9 +1,11 @@
 export const MapTracer_World = {
 
-    init: () => {
-    
+    init: (
+        resDir
+    ) => {
+
         const MapTracer_World = document.createElement("object");
-        MapTracer_World.setAttribute("data", "/src/res/world.svg");
+        MapTracer_World.setAttribute("data", `${resDir}/world.svg`);
 
         const MapTracer_World_Style = document.createElement("style");
         MapTracer_World_Style.textContent = `

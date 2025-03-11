@@ -43,6 +43,8 @@ class MapTracer extends HTMLElement {
     #visitedData    = {};
     #visitedCountry = [];
 
+    #resDir = "/src/res";
+
     constructor () {
         super();
 
@@ -75,6 +77,10 @@ class MapTracer extends HTMLElement {
             if (newValue) this.style[prop] = newValue;
         });
         
+        const res = this.getAttribute("res");
+        if (res) {
+            this.#resDir = res;
+        }
     }
 
     async connectedCallback () {
@@ -86,7 +92,9 @@ class MapTracer extends HTMLElement {
         const MapBox_World = document.createElement("div");
 
         MapBox_World.setAttribute("id", "MapTracer-MapBox-World");
-        MapBox_World.appendChild(MapTracer_World.init());
+        MapBox_World.appendChild(MapTracer_World.init(
+            this.#resDir
+        ));
 
         const MapBox_Country = document.createElement("div");
         MapBox_Country.setAttribute("id", "MapTracer-MapBox-Country");
@@ -130,6 +138,12 @@ class MapTracer extends HTMLElement {
 
             this.#visitedCountry.forEach(country => {
                 svgWorld.querySelector(`#${country}`).classList.add("visited");
+            });
+
+            svgWorld.addEventListener("mouseover", (e) => {
+                if (e.target.classList.contains("visited")) {
+                    console.log(e.target);
+                }
             });
         });
     }

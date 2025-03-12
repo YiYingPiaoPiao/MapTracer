@@ -153,11 +153,24 @@ class MapTracer extends HTMLElement {
                         const svgDoc = parser.parseFromString(svgTxt, "image/svg+xml");
 
                         const svgElement = svgDoc.documentElement;
+                        const svgGroup = svgElement.querySelector("g");
                         
-                        let countryPath = svgElement.querySelectorAll("path");
-                        countryPath.forEach(path => {
-                            e.target.appendChild(path);
-                        });
+                        const bbox = e.target.getBBox();
+                        const bboxX = bbox.x;
+                        const bboxY = bbox.y;
+                        const bboxW = bbox.width;
+                        const bboxH = bbox.height;
+
+                        const viewBox = svgElement.getAttribute("viewBox").split(" ").map(Number);
+                        const vW = viewBox[2];
+                        const vH = viewBox[3];
+
+                        let scaleX = bboxW / vW;
+                        let scaleY = bboxH / vH;
+
+                        svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`)
+                        e.target.parentNode.replaceChild(svgGroup, e.target);
+
                     })
                     .catch(err => console.log("Error"));
             });

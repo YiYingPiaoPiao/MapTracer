@@ -1,55 +1,52 @@
-import { MapTracer_World } from "./MapWorld.js";
+import { MapTracerTools     as mtTools     } from "../script/Tools.js"     ;
+import { MapTracerTaskAgent as mtTaskAgent } from "../script/TaskAgent.js" ;
 
-const tools = {
-    getJson: async (
-        url
-    ) => {
-        if (window.fetch) {
-            return fetch(url)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP Error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                });
-        } else {
-            return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open("GET", url, true);
-    
-                xhr.onreadystatechange = function() {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status >= 200 && xhr.status < 300) {
-                            try {
-                                var data = JSON.parse(xhr.responseText);
-                                resolve(data);
-                            } catch (e) {
-                                reject(e);
-                            }
-                        } else {
-                            reject(new Error(`HTTP Error! Status: ${xhr.status}`));
-                        }
-                    }
-                };
-    
-                xhr.send();
-            });
-        }
-    }
-}
+import { MapTracerComponentsWorld    as mtcWorld    } from "./MapTracerComponentsWorld.js"  ;
+import { MapTracerComponentsCountry  as mtcCountry  } from "./MapTracerComponentsCountry.js";
 
 class MapTracer extends HTMLElement {
+
+    #defaultResource;
 
     #visitedData    = {};
     #visitedCountry = [];
 
-    #resDir = "/src/res";
+    #componentsWorld;
+
+    #mtTools    ;
+    #mtTaskAgent;
 
     constructor () {
         super();
 
-        const userStyle = getComputedStyle(this);
+        this.#mtTools       = new mtTools()     ;
+        this.#mtTaskAgent   = new mtTaskAgent() ;
 
+        /**
+         * Adjust Element Dimensions and Style Fixes
+         * 
+         * 1. Retrieve the computed styles of the current element using `getComputedStyle()`.
+         * 2. Extract width, height, and related min/max dimensions, storing them in the `dimensions` object.
+         * 3. If both `width` and `height` are set to `auto`, adjust them based on constraints:
+         *    - Calculate `height`:
+         *      - If `max-height` is `none`:
+         *        - If `min-height` is `0px`, set `height` to `80dvh` (default height).
+         *        - Otherwise, use `min-height` as the `height`.
+         *      - Otherwise, use `max-height` as the `height`.
+         *    - Calculate `width`:
+         *      - If `max-width` is `none`:
+         *        - If `min-width` is `0px`, set `width` to `80vw` (default width).
+         *        - Otherwise, use `min-width` as the `width`.
+         *      - Otherwise, use `max-width` as the `width`.
+         * 
+         * 4. Apply style fixes:
+         *    - If `position` is `static` (default style or user-defined), change it to `relative` to ensure proper positioning.
+         *    - If `display`  is `inline` (default style or user-defined), change it to `block`    to ensure correct layout behavior.
+         * 
+         * 5. Iterate through `StyleFixes` to apply corrections:
+         *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
+         */
+        const userStyle = getComputedStyle(this);
         const dimensions = {
             width       : userStyle.getPropertyValue("width"        ),
             height      : userStyle.getPropertyValue("height"       ),
@@ -58,7 +55,6 @@ class MapTracer extends HTMLElement {
             minWidth    : userStyle.getPropertyValue("min-width"    ),
             maxWidth    : userStyle.getPropertyValue("max-width"    ),
         }
-
         if (
             dimensions.width  === "auto" &&
             dimensions.height === "auto"
@@ -66,7 +62,6 @@ class MapTracer extends HTMLElement {
             this.style.height = dimensions.maxHeight === "none" ? (dimensions.minHeight === "0px" ? "80dvh" : dimensions.minHeight) : dimensions.maxHeight;
             this.style.width  = dimensions.maxWidth  === "none" ? (dimensions.minWidth  === "0px" ? "80vw"  : dimensions.minWidth ) : dimensions.minWidth ;
         }
-
         const StyleFixes = {
             position: (value) => (value === "static" ? "relative"   : ""),
             display : (value) => (value === "inline" ? "block"      : ""),
@@ -76,11 +71,6 @@ class MapTracer extends HTMLElement {
             const newValue  = fix(userValue);
             if (newValue) this.style[prop] = newValue;
         });
-        
-        const res = this.getAttribute("res");
-        if (res) {
-            this.#resDir = res;
-        }
     }
 
     async connectedCallback () {
@@ -89,12 +79,64 @@ class MapTracer extends HTMLElement {
             mode: "open"
         });
 
-        const MapBox_World = document.createElement("div");
+        /**
+         * Load Map Resource Configuration File
+         * 
+         * This method retrieves the resource path from the `res` attribute in the tag.  
+         * The configuration file follows a JSON format.
+         * 
+         * The configuration file must include the following two keys:
+         *   1. world: The path to the world map resource, typically an SVG file.
+         *   2. country: The directory containing country map resources.  
+         *      Unless specified otherwise, all country maps are loaded from this folder.
+         * 
+         * If different countries have unique resource paths,  
+         * their respective IDs in the world map can be used as keys to specify paths.
+         * 
+         * Note: If resources cannot be loaded from the specified paths in the configuration file,  
+         * the default map resources will be used.
+         * 
+         * Example Configuration:
+         * {
+         *     "world"  : "/your/world/svg/file/path/map.svg"   ,
+         *     "country": "/path/to/all/country/maps"           ,
+         *     "my"     : "/path/to/malaysia/map.svg"
+         * }
+         */
+        const resCfg = this.getAttribute("res")?.trim();
+        if (
+            !resCfg ||
+            resCfg.trim() === "" ||
+            resCfg === "undefined"
+        ) {
+            throw new ReferenceError(`<map-tracer> must have a [res] attribute with a valid value. Your [res] value is: "${resCfg}".`);
+        }
+        try {
+            this.#defaultResource = await this.#mtTools.getJson(resCfg);
+        } catch (error) {
+            throw new Error(`Failed to load resource configuration from: "${resCfg}". Error: ${error.message}`);
+        }
+        if (
+            !this.#defaultResource.world    ||
+            !this.#defaultResource.country
+        ) {
+            throw new ReferenceError(`Invalid configuration: Missing required keys "world" or "country" in resource file "${resCfg}".`);
+        }
 
-        MapBox_World.setAttribute("id", "MapTracer-MapBox-World");
-        MapBox_World.appendChild(MapTracer_World.init(
-            this.#resDir
-        ));
+        /**
+         *  World Map relation logic.
+         */
+        const MapTracerBoxWorld = document.createElement("div");
+        MapTracerBoxWorld.setAttribute(
+            "id",
+            "MapTracer-MapBox-World"
+        );
+        // 
+        // 
+        // 
+        MapBox_World.appendChild(new mtcWorld(
+            // this.#resDir
+        ).getMapTracer());
 
         const MapBox_Country = document.createElement("div");
         MapBox_Country.setAttribute("id", "MapTracer-MapBox-Country");
@@ -129,7 +171,7 @@ class MapTracer extends HTMLElement {
             throw new ReferenceError(`<map-tracer> must have a "visited" attribute with a valid value. Your "visited" value is: "${visited}".`);
         }
 
-        this.#visitedData    = await tools.getJson(visited);
+        // this.#visitedData = await this.#tools.getJson(visited);
         this.#visitedCountry = Object.keys(this.#visitedData);
 
         const MapBox_World_Object = MapBox_World.querySelector("object");

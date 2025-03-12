@@ -141,9 +141,25 @@ class MapTracer extends HTMLElement {
             });
 
             svgWorld.addEventListener("mouseover", (e) => {
-                if (e.target.classList.contains("visited")) {
-                    console.log(e.target);
+                if (!e.target.classList.contains("visited")) {
+                    return;
                 }
+
+                let country_svg = `https://raw.githubusercontent.com/SeeChen/seechen.github.io/refs/heads/main/File/Maps/${e.target.id}_High.svg`;
+                fetch(country_svg)
+                    .then(response => response.text())
+                    .then(svgTxt => {
+                        const parser = new DOMParser();
+                        const svgDoc = parser.parseFromString(svgTxt, "image/svg+xml");
+
+                        const svgElement = svgDoc.documentElement;
+                        
+                        let countryPath = svgElement.querySelectorAll("path");
+                        countryPath.forEach(path => {
+                            e.target.appendChild(path);
+                        });
+                    })
+                    .catch(err => console.log("Error"));
             });
         });
     }

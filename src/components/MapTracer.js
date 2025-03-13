@@ -20,7 +20,7 @@ class MapTracer extends HTMLElement {
         super();
 
         this.#mtTools       = new mtTools()     ;
-        this.#mtTaskAgent   = new mtTaskAgent() ;
+        // this.#mtTaskAgent   = new mtTaskAgent() ;
 
         /**
          * Adjust Element Dimensions and Style Fixes
@@ -77,12 +77,14 @@ class MapTracer extends HTMLElement {
      * Load Map Resource Configuration File
      * 
      * This method retrieves the resource path from the `res` attribute in the tag.  
-     * The configuration file follows a JSON format.
+     * The configuration file follows a **JSON** format.
      * 
      * The configuration file must include the following two keys:
-     *   1. world: The path to the world map resource, typically an SVG file.
-     *   2. country: The directory containing country map resources.  
-     *      Unless specified otherwise, all country maps are loaded from this folder.
+     *   1. world
+     *      > The path to the world map resource, typically an SVG file.
+     *   2. country
+     *      > The directory containing country map resources.  
+     *      > Unless specified otherwise, all country maps are loaded from this folder.
      * 
      * If different countries have unique resource paths,  
      * their respective IDs in the world map can be used as keys to specify paths.
@@ -91,11 +93,13 @@ class MapTracer extends HTMLElement {
      * the default map resources will be used.
      * 
      * Example Configuration:
+     * ```
      * {
      *     "world"  : "/your/world/svg/file/path/map.svg"   ,
      *     "country": "/path/to/all/country/maps"           ,
      *     "my"     : "/path/to/malaysia/map.svg"
      * }
+     * ```
      */
     async #configuration (
         resCfg
@@ -130,20 +134,18 @@ class MapTracer extends HTMLElement {
         this.#defaultResource = await this.#configuration(
             this.getAttribute("res")?.trim()
         );
-        // console.log(this.#defaultResource);
 
         /**
          *  World Map relation logic.
          */
+        this.#componentsWorld = new mtcWorld(this.#defaultResource.world);
         const MapTracerBoxWorld = document.createElement("div");
         MapTracerBoxWorld.setAttribute(
             "id",
             "MapTracer-MapBox-World"
         );
         MapTracerBoxWorld.append(
-            new mtcWorld(
-                this.#defaultResource.world
-            ).getMapTracer()
+            this.#componentsWorld.getMapTracer()
         );
 
         const style = document.createElement("style");
@@ -187,52 +189,68 @@ class MapTracer extends HTMLElement {
             throw new ReferenceError(`<map-tracer> must have a "visited" attribute with a valid value. Your "visited" value is: "${visited}".`);
         }
 
-        // this.#visitedData = await this.#tools.getJson(visited);
+        this.#visitedData = await this.#mtTools.getJson(visited);
         this.#visitedCountry = Object.keys(this.#visitedData);
+        console.log(this.#visitedCountry);
 
-        const MapBox_World_Object = MapBox_World.querySelector("object");
-        MapBox_World_Object.addEventListener("load", () => {
-            let svgWorld = MapBox_World_Object.contentDocument;
-
-            this.#visitedCountry.forEach(country => {
-                svgWorld.querySelector(`#${country}`).classList.add("visited");
-            });
-
-            svgWorld.addEventListener("mouseover", (e) => {
-                if (!e.target.classList.contains("visited")) {
-                    return;
-                }
-
-                let country_svg = `https://raw.githubusercontent.com/SeeChen/seechen.github.io/refs/heads/main/File/Maps/${e.target.id}_High.svg`;
-                fetch(country_svg)
-                    .then(response => response.text())
-                    .then(svgTxt => {
-                        const parser = new DOMParser();
-                        const svgDoc = parser.parseFromString(svgTxt, "image/svg+xml");
-
-                        const svgElement = svgDoc.documentElement;
-                        const svgGroup = svgElement.querySelector("g");
-                        
-                        const bbox = e.target.getBBox();
-                        const bboxX = bbox.x;
-                        const bboxY = bbox.y;
-                        const bboxW = bbox.width;
-                        const bboxH = bbox.height;
-
-                        const viewBox = svgElement.getAttribute("viewBox").split(" ").map(Number);
-                        const vW = viewBox[2];
-                        const vH = viewBox[3];
-
-                        let scaleX = bboxW / vW;
-                        let scaleY = bboxH / vH;
-
-                        svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`)
-                        e.target.parentNode.replaceChild(svgGroup, e.target);
-
-                    })
-                    .catch(err => console.log("Error"));
-            });
+        const MapObj = MapTracerBoxWorld.querySelector("object");
+        MapObj.addEventListener("load", () => {
+            let svgWorld = MapObj.contentDocument;
+            this.#componentsWorld.setVisited(
+                this.#visitedCountry
+            );
+            // this.#
         });
+        
+        // .addEventListener("load", () => {
+
+        //     let svgWorld = MapTracerBoxWorld.contentDocument;
+        //     console.log(svgWorld);
+        // });
+
+        // const MapBox_World_Object = MapBox_World.querySelector("object");
+        // MapBox_World_Object.addEventListener("load", () => {
+        //     let svgWorld = MapBox_World_Object.contentDocument;
+
+        //     this.#visitedCountry.forEach(country => {
+        //         svgWorld.querySelector(`#${country}`).classList.add("visited");
+        //     });
+
+        //     svgWorld.addEventListener("mouseover", (e) => {
+        //         if (!e.target.classList.contains("visited")) {
+        //             return;
+        //         }
+
+        //         let country_svg = `https://raw.githubusercontent.com/SeeChen/seechen.github.io/refs/heads/main/File/Maps/${e.target.id}_High.svg`;
+        //         fetch(country_svg)
+        //             .then(response => response.text())
+        //             .then(svgTxt => {
+        //                 const parser = new DOMParser();
+        //                 const svgDoc = parser.parseFromString(svgTxt, "image/svg+xml");
+
+        //                 const svgElement = svgDoc.documentElement;
+        //                 const svgGroup = svgElement.querySelector("g");
+                        
+        //                 const bbox = e.target.getBBox();
+        //                 const bboxX = bbox.x;
+        //                 const bboxY = bbox.y;
+        //                 const bboxW = bbox.width;
+        //                 const bboxH = bbox.height;
+
+        //                 const viewBox = svgElement.getAttribute("viewBox").split(" ").map(Number);
+        //                 const vW = viewBox[2];
+        //                 const vH = viewBox[3];
+
+        //                 let scaleX = bboxW / vW;
+        //                 let scaleY = bboxH / vH;
+
+        //                 svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`)
+        //                 e.target.parentNode.replaceChild(svgGroup, e.target);
+
+        //             })
+        //             .catch(err => console.log("Error"));
+        //     });
+        // });
     }
 }
 

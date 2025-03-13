@@ -73,37 +73,33 @@ class MapTracer extends HTMLElement {
         });
     }
 
-    async connectedCallback () {
-
-        const shadow = this.attachShadow({
-            mode: "open"
-        });
-
-        /**
-         * Load Map Resource Configuration File
-         * 
-         * This method retrieves the resource path from the `res` attribute in the tag.  
-         * The configuration file follows a JSON format.
-         * 
-         * The configuration file must include the following two keys:
-         *   1. world: The path to the world map resource, typically an SVG file.
-         *   2. country: The directory containing country map resources.  
-         *      Unless specified otherwise, all country maps are loaded from this folder.
-         * 
-         * If different countries have unique resource paths,  
-         * their respective IDs in the world map can be used as keys to specify paths.
-         * 
-         * Note: If resources cannot be loaded from the specified paths in the configuration file,  
-         * the default map resources will be used.
-         * 
-         * Example Configuration:
-         * {
-         *     "world"  : "/your/world/svg/file/path/map.svg"   ,
-         *     "country": "/path/to/all/country/maps"           ,
-         *     "my"     : "/path/to/malaysia/map.svg"
-         * }
-         */
-        const resCfg = this.getAttribute("res")?.trim();
+    /**
+     * Load Map Resource Configuration File
+     * 
+     * This method retrieves the resource path from the `res` attribute in the tag.  
+     * The configuration file follows a JSON format.
+     * 
+     * The configuration file must include the following two keys:
+     *   1. world: The path to the world map resource, typically an SVG file.
+     *   2. country: The directory containing country map resources.  
+     *      Unless specified otherwise, all country maps are loaded from this folder.
+     * 
+     * If different countries have unique resource paths,  
+     * their respective IDs in the world map can be used as keys to specify paths.
+     * 
+     * Note: If resources cannot be loaded from the specified paths in the configuration file,  
+     * the default map resources will be used.
+     * 
+     * Example Configuration:
+     * {
+     *     "world"  : "/your/world/svg/file/path/map.svg"   ,
+     *     "country": "/path/to/all/country/maps"           ,
+     *     "my"     : "/path/to/malaysia/map.svg"
+     * }
+     */
+    async #configuration (
+        resCfg
+    ) {
         if (
             !resCfg ||
             resCfg.trim() === "" ||
@@ -112,16 +108,29 @@ class MapTracer extends HTMLElement {
             throw new ReferenceError(`<map-tracer> must have a [res] attribute with a valid value. Your [res] value is: "${resCfg}".`);
         }
         try {
-            this.#defaultResource = await this.#mtTools.getJson(resCfg);
+            var cfg = await this.#mtTools.getJson(resCfg);
         } catch (error) {
             throw new Error(`Failed to load resource configuration from: "${resCfg}". Error: ${error.message}`);
         }
         if (
-            !this.#defaultResource.world    ||
-            !this.#defaultResource.country
+            !cfg.world    ||
+            !cfg.country
         ) {
             throw new ReferenceError(`Invalid configuration: Missing required keys "world" or "country" in resource file "${resCfg}".`);
         }
+        return cfg;
+    }
+
+    async connectedCallback () {
+
+        const shadow = this.attachShadow({
+            mode: "open"
+        });
+
+        this.#defaultResource = await this.#configuration(
+            this.getAttribute("res")?.trim()
+        );
+        // console.log(this.#defaultResource);
 
         /**
          *  World Map relation logic.
@@ -131,15 +140,11 @@ class MapTracer extends HTMLElement {
             "id",
             "MapTracer-MapBox-World"
         );
-        // 
-        // 
-        // 
-        MapBox_World.appendChild(new mtcWorld(
-            // this.#resDir
-        ).getMapTracer());
-
-        const MapBox_Country = document.createElement("div");
-        MapBox_Country.setAttribute("id", "MapTracer-MapBox-Country");
+        MapTracerBoxWorld.append(
+            new mtcWorld(
+                this.#defaultResource.world
+            ).getMapTracer()
+        );
 
         const style = document.createElement("style");
         style.textContent = `
@@ -157,10 +162,21 @@ class MapTracer extends HTMLElement {
                 height: ${this.clientHeight}px;
                 width : ${this.clientWidth }px;
             }
+
+            #MapTracer-MapBox-World object {
+                position  : absolute;
+                left      : 0;
+                right     : 0;
+                top       : 0;
+                bottom    : 0;
+                margin    : auto;
+                max-height: 100%;
+                max-width : 100%;
+            }
         `;
 
         shadow.appendChild(style);
-        shadow.appendChild(MapBox_World);
+        shadow.appendChild(MapTracerBoxWorld);
 
         const visited = this.getAttribute("visited");
         if (

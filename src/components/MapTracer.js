@@ -4,10 +4,27 @@ import { MapTracerTaskAgent as mtTaskAgent } from "../script/TaskAgent.js" ;
 import { MapTracerComponentsWorld    as mtcWorld    } from "./MapTracerComponentsWorld.js"  ;
 import { MapTracerComponentsCountry  as mtcCountry  } from "./MapTracerComponentsCountry.js";
 
+
+/**
+ *  ## MapTracer
+ */
 class MapTracer extends HTMLElement {
 
     /** Resource Configuration File Path. @private @type {string} */
     #defaultResource;
+
+    /** 
+     * ## Attribute. 
+     * ---
+     * 1. `res-map`: The resoucre of your maps svg files.
+     * 
+     * All attibute in list below.
+     * 
+     * @private @type {json}
+    */
+    #MapTracerAttribute = {
+        "res-map": ""
+    };
 
     /**  */
     #visitedData    = {};
@@ -24,7 +41,71 @@ class MapTracer extends HTMLElement {
         this.#mtTools       = new mtTools()     ;
         this.#mtTaskAgent   = new mtTaskAgent() ;
 
-        this.#initSytle();
+        this.#init.style();
+        this.#init.attr();
+    }
+
+    /** init function @private */
+    get #init () {
+        return {
+            /**
+             * ## Adjust Element Dimensions and Style Fixes
+             * ---
+             * 1. Retrieve the computed styles of the current element using `getComputedStyle()`.
+             * 2. Extract width, height, and related min/max dimensions, storing them in the `dimensions` object.
+             * 3. If both `width` and `height` are set to `auto`, adjust them based on constraints:
+             *    - Calculate `height`:
+             *      - If `max-height` is `none`:
+             *        - If `min-height` is `0px`, set `height` to `80dvh` (default height).
+             *        - Otherwise, use `min-height` as the `height`.
+             *      - Otherwise, use `max-height` as the `height`.
+             *    - Calculate `width`:
+             *      - If `max-width` is `none`:
+             *        - If `min-width` is `0px`, set `width` to `80vw` (default width).
+             *        - Otherwise, use `min-width` as the `width`.
+             *      - Otherwise, use `max-width` as the `width`.
+             * 
+             * 4. Apply style fixes:
+             *    - If `position` is `static` (default style or user-defined), change it to `relative` to ensure proper positioning.
+             *    - If `display`  is `inline` (default style or user-defined), change it to `block`    to ensure correct layout behavior.
+             * 
+             * 5. Iterate through `StyleFixes` to apply corrections:
+             *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
+             */
+            style: () => {
+                /** The style from user. */
+                const userStyle = getComputedStyle(this);
+                const dimensions = {
+                    width       : userStyle.getPropertyValue("width"        ),
+                    height      : userStyle.getPropertyValue("height"       ),
+                    minHeight   : userStyle.getPropertyValue("min-height"   ),
+                    maxHeight   : userStyle.getPropertyValue("max-height"   ),
+                    minWidth    : userStyle.getPropertyValue("min-width"    ),
+                    maxWidth    : userStyle.getPropertyValue("max-width"    ),
+                }
+                if (
+                    dimensions.width  === "auto" &&
+                    dimensions.height === "auto"
+                ) {
+                    this.style.height = dimensions.maxHeight === "none" ? (dimensions.minHeight === "0px" ? "80dvh" : dimensions.minHeight) : dimensions.maxHeight;
+                    this.style.width  = dimensions.maxWidth  === "none" ? (dimensions.minWidth  === "0px" ? "80vw"  : dimensions.minWidth ) : dimensions.minWidth ;
+                }
+                const StyleFixes = {
+                    position: (value) => (value === "static" ? "relative"   : ""),
+                    display : (value) => (value === "inline" ? "block"      : ""),
+                };
+                Object.entries(StyleFixes).forEach(([prop, fix]) => {
+                    const userValue = userStyle.getPropertyValue(prop);
+                    const newValue  = fix(userValue);
+                    if (newValue) this.style[prop] = newValue;
+                });
+            },
+
+            /** Attribute */
+            attr: () => {
+                console.log(this.attributes["resMap"].nodeValue);
+            }
+        }
     }
 
     /**
@@ -53,6 +134,8 @@ class MapTracer extends HTMLElement {
      *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
      */
     #initSytle () {
+        
+        /** The style from user. */
         const userStyle = getComputedStyle(this);
         const dimensions = {
             width       : userStyle.getPropertyValue("width"        ),
@@ -81,6 +164,10 @@ class MapTracer extends HTMLElement {
     }
 
     /**
+     * 
+     *  @param  {string} resCfg Config file path set by user.
+     *  @return {string}
+     * 
      * Load Map Resource Configuration File
      * 
      * This method retrieves the resource path from the `res` attribute in the tag.  
@@ -108,8 +195,6 @@ class MapTracer extends HTMLElement {
      * }
      * ```
      * 
-     *  @param {string} resCfg
-     *  @return {string} cfg:
      */
     async #configuration (
         resCfg
@@ -135,14 +220,21 @@ class MapTracer extends HTMLElement {
         return cfg;
     }
 
+    /** 
+     *  ## connectedCallback fucntion
+     *  ---
+     */
     async connectedCallback () {
 
         const shadow = this.attachShadow({
             mode: "open"
         });
 
+        // Get the user map resource file path.
+        // this.#defaultResource = await this.#configuration();
+
         this.#defaultResource = await this.#configuration(
-            this.getAttribute("res")?.trim()
+            this.getAttribute("resMap")?.trim()
         );
 
         /**

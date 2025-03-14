@@ -1,5 +1,5 @@
 import { MapTracerTools     as mtTools     } from "../script/Tools.js"     ;
-import { MapTracerTaskAgent as mtTaskAgent } from "../script/TaskAgent.js" ;
+// import { MapTracerTaskAgent as mtTaskAgent } from "../script/TaskAgent.js" ;
 
 import { MapTracerComponentsWorld    as mtcWorld    } from "./MapTracerComponentsWorld.js"  ;
 import { MapTracerComponentsCountry  as mtcCountry  } from "./MapTracerComponentsCountry.js";
@@ -10,23 +10,34 @@ import { MapTracerComponentsCountry  as mtcCountry  } from "./MapTracerComponent
  */
 class MapTracer extends HTMLElement {
 
+    MapTracerDefaultValueHost = "http://127.0.0.1:5500";
+
     /** Resource Configuration File Path. @private @type {string} */
     #defaultResource;
 
-    /** 
-     * ## Attribute. 
+    /**
+     * ## MapTracer Attributes
      * ---
-     * 1. `res-map`: The resoucre of your maps svg files.
+     * Stores default attribute values for the MapTracer component.
+     * If the user sets these attributes, their values will override the defaults.
      * 
-     * All attibute in list below.
+     * ### Attributes:
+     * 1. **`res-map`**  - Path to the map SVG resource configuration file.
+     * 2. **`visited`**  - Records accessed configuration files. Must follow a specified format.
      * 
-     * @private @type {json}
-    */
+     * ---
+     * ### Note:
+     * - All attributes have predefined default values.
+     * - If the user specifies an attribute, its value will be updated accordingly.
+     * 
+     * @private
+     * @type {Object.<string, string>}
+     */
     #MapTracerAttribute = {
-        "res-map": ""
+        "res-map": `${this.MapTracerDefaultValueHost}/data/resMap.json`,
+        "visited": ""
     };
 
-    /**  */
     #visitedData    = {};
     #visitedCountry = [];
 
@@ -39,13 +50,78 @@ class MapTracer extends HTMLElement {
         super();
 
         this.#mtTools       = new mtTools()     ;
-        this.#mtTaskAgent   = new mtTaskAgent() ;
+        // this.#mtTaskAgent   = new mtTaskAgent() ;
 
         this.#init.style();
         this.#init.attr();
     }
 
-    /** init function @private */
+    async connectedCallback () {
+        const shadow = this.attachShadow({
+            mode: "open"
+        });
+
+        // To get map file
+         this.#defaultResource = await this.#configuration(
+            this.#MapTracerAttribute["res-map"]
+        );
+        console.log(this.#defaultResource);
+    }
+
+    /**
+     * ## Load Map Resource Configuration File
+     *
+     * This method retrieves the resource path from the `res-map` property.
+     * The configuration file must be in **JSON** format and contain the following keys:
+     *
+     * - **world**: Path to the world map resource, typically an SVG file.
+     * - **country**: Directory containing country map resources.
+     *   - Unless specified otherwise, all country maps will be loaded from this directory.
+     * 
+     * If specific countries have unique resource paths, their respective IDs in the world map
+     * can be used as keys to define their paths.
+     * 
+     * **Note:** If the resource cannot be loaded from the specified path in the configuration file,  
+     * the system will fall back to the default map resource.
+     *
+     * ### Example Configuration:
+     * ```json
+     * {
+     *   "world": "/your/world/svg/file/path/map.svg",
+     *   "country": "/path/to/all/country/maps",
+     *   "my": "/path/to/malaysia/map.svg"
+     * }
+     * ```
+     *
+     * @param   {string         } configPath - The file path of the configuration set by the user.
+     * @return  {Promise<JSON>  } Resolves with the parsed JSON configuration object.
+     * @throws  {ReferenceError } If the configuration file is missing required keys.
+     * @throws  {Error          } If the file cannot be loaded due to an error.
+     * @private
+     */
+    async #configuration (
+        configPath
+    ) {
+        try {
+            const config = await this.#mtTools.getJson(configPath);
+            if (!config?.world || !config?.country) {
+                throw new ReferenceError(
+                    `Invalid configuration: Missing required keys "world" or "country" in resource file "${configPath}".`
+                );
+            }
+            return config;
+        } catch (error) {
+            throw new Error(
+                `Failed to load resource configuration from: "${configPath}". Cause: ${error.message}`
+            );
+        }
+    }
+
+    /** 
+     * ## Initializes the component
+     * 
+     * @private
+     */
     get #init () {
         return {
             /**
@@ -71,9 +147,10 @@ class MapTracer extends HTMLElement {
              * 
              * 5. Iterate through `StyleFixes` to apply corrections:
              *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
+             * 
              */
             style: () => {
-                /** The style from user. */
+                /** The computed styles of the element */
                 const userStyle = getComputedStyle(this);
                 const dimensions = {
                     width       : userStyle.getPropertyValue("width"        ),
@@ -101,130 +178,37 @@ class MapTracer extends HTMLElement {
                 });
             },
 
-            /** Attribute */
+            /**
+             * Handles element attributes by checking user-defined values  
+             * and applying default values if necessary.
+             * 
+             * - Retrieves attribute names from `#MapTracerAttribute`.
+             * - Checks if the attribute is missing, empty, or invalid.
+             * - Logs a warning if an attribute is unset and applies the default value.
+             * - Updates `#MapTracerAttribute` with the user-defined or default value.
+             */
             attr: () => {
-                console.log(this.attributes["resMap"].nodeValue);
+                Object.keys(this.#MapTracerAttribute).forEach((attr) => {
+                    let userAttr = this.getAttribute(attr)?.trim();
+                    if (
+                        !userAttr               ||
+                        userAttr === ""         ||
+                        userAttr === "undefined"
+                    ) {
+                        console.warn(`The attribute [${attr}] is not set or empty, using default value: ${this.#MapTracerAttribute[attr]}`);
+                    }
+
+                    this.#MapTracerAttribute[attr] = userAttr || this.#MapTracerAttribute[attr];
+                });
             }
         }
-    }
-
-    /**
-     * @private
-     * ## Adjust Element Dimensions and Style Fixes
-     * ---
-     * 1. Retrieve the computed styles of the current element using `getComputedStyle()`.
-     * 2. Extract width, height, and related min/max dimensions, storing them in the `dimensions` object.
-     * 3. If both `width` and `height` are set to `auto`, adjust them based on constraints:
-     *    - Calculate `height`:
-     *      - If `max-height` is `none`:
-     *        - If `min-height` is `0px`, set `height` to `80dvh` (default height).
-     *        - Otherwise, use `min-height` as the `height`.
-     *      - Otherwise, use `max-height` as the `height`.
-     *    - Calculate `width`:
-     *      - If `max-width` is `none`:
-     *        - If `min-width` is `0px`, set `width` to `80vw` (default width).
-     *        - Otherwise, use `min-width` as the `width`.
-     *      - Otherwise, use `max-width` as the `width`.
-     * 
-     * 4. Apply style fixes:
-     *    - If `position` is `static` (default style or user-defined), change it to `relative` to ensure proper positioning.
-     *    - If `display`  is `inline` (default style or user-defined), change it to `block`    to ensure correct layout behavior.
-     * 
-     * 5. Iterate through `StyleFixes` to apply corrections:
-     *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
-     */
-    #initSytle () {
-        
-        /** The style from user. */
-        const userStyle = getComputedStyle(this);
-        const dimensions = {
-            width       : userStyle.getPropertyValue("width"        ),
-            height      : userStyle.getPropertyValue("height"       ),
-            minHeight   : userStyle.getPropertyValue("min-height"   ),
-            maxHeight   : userStyle.getPropertyValue("max-height"   ),
-            minWidth    : userStyle.getPropertyValue("min-width"    ),
-            maxWidth    : userStyle.getPropertyValue("max-width"    ),
-        }
-        if (
-            dimensions.width  === "auto" &&
-            dimensions.height === "auto"
-        ) {
-            this.style.height = dimensions.maxHeight === "none" ? (dimensions.minHeight === "0px" ? "80dvh" : dimensions.minHeight) : dimensions.maxHeight;
-            this.style.width  = dimensions.maxWidth  === "none" ? (dimensions.minWidth  === "0px" ? "80vw"  : dimensions.minWidth ) : dimensions.minWidth ;
-        }
-        const StyleFixes = {
-            position: (value) => (value === "static" ? "relative"   : ""),
-            display : (value) => (value === "inline" ? "block"      : ""),
-        };
-        Object.entries(StyleFixes).forEach(([prop, fix]) => {
-            const userValue = userStyle.getPropertyValue(prop);
-            const newValue  = fix(userValue);
-            if (newValue) this.style[prop] = newValue;
-        });
-    }
-
-    /**
-     * 
-     *  @param  {string} resCfg Config file path set by user.
-     *  @return {string}
-     * 
-     * Load Map Resource Configuration File
-     * 
-     * This method retrieves the resource path from the `res` attribute in the tag.  
-     * The configuration file follows a **JSON** format.
-     * 
-     * The configuration file must include the following two keys:
-     *   1. world
-     *      > The path to the world map resource, typically an SVG file.
-     *   2. country
-     *      > The directory containing country map resources.  
-     *      > Unless specified otherwise, all country maps are loaded from this folder.
-     * 
-     * If different countries have unique resource paths,  
-     * their respective IDs in the world map can be used as keys to specify paths.
-     * 
-     * Note: If resources cannot be loaded from the specified paths in the configuration file,  
-     * the default map resources will be used.
-     * 
-     * Example Configuration:
-     * ```
-     * {
-     *     "world"  : "/your/world/svg/file/path/map.svg"   ,
-     *     "country": "/path/to/all/country/maps"           ,
-     *     "my"     : "/path/to/malaysia/map.svg"
-     * }
-     * ```
-     * 
-     */
-    async #configuration (
-        resCfg
-    ) {
-        if (
-            !resCfg ||
-            resCfg.trim() === "" ||
-            resCfg === "undefined"
-        ) {
-            throw new ReferenceError(`<map-tracer> must have a [res] attribute with a valid value. Your [res] value is: "${resCfg}".`);
-        }
-        try {
-            var cfg = await this.#mtTools.getJson(resCfg);
-        } catch (error) {
-            throw new Error(`Failed to load resource configuration from: "${resCfg}". Error: ${error.message}`);
-        }
-        if (
-            !cfg.world    ||
-            !cfg.country
-        ) {
-            throw new ReferenceError(`Invalid configuration: Missing required keys "world" or "country" in resource file "${resCfg}".`);
-        }
-        return cfg;
     }
 
     /** 
      *  ## connectedCallback fucntion
      *  ---
      */
-    async connectedCallback () {
+    async _connectedCallback () {
 
         const shadow = this.attachShadow({
             mode: "open"

@@ -6,8 +6,10 @@ import { MapTracerComponentsCountry  as mtcCountry  } from "./MapTracerComponent
 
 class MapTracer extends HTMLElement {
 
+    /** Resource Configuration File Path. @private @type {string} */
     #defaultResource;
 
+    /**  */
     #visitedData    = {};
     #visitedCountry = [];
 
@@ -20,32 +22,37 @@ class MapTracer extends HTMLElement {
         super();
 
         this.#mtTools       = new mtTools()     ;
-        // this.#mtTaskAgent   = new mtTaskAgent() ;
+        this.#mtTaskAgent   = new mtTaskAgent() ;
 
-        /**
-         * Adjust Element Dimensions and Style Fixes
-         * 
-         * 1. Retrieve the computed styles of the current element using `getComputedStyle()`.
-         * 2. Extract width, height, and related min/max dimensions, storing them in the `dimensions` object.
-         * 3. If both `width` and `height` are set to `auto`, adjust them based on constraints:
-         *    - Calculate `height`:
-         *      - If `max-height` is `none`:
-         *        - If `min-height` is `0px`, set `height` to `80dvh` (default height).
-         *        - Otherwise, use `min-height` as the `height`.
-         *      - Otherwise, use `max-height` as the `height`.
-         *    - Calculate `width`:
-         *      - If `max-width` is `none`:
-         *        - If `min-width` is `0px`, set `width` to `80vw` (default width).
-         *        - Otherwise, use `min-width` as the `width`.
-         *      - Otherwise, use `max-width` as the `width`.
-         * 
-         * 4. Apply style fixes:
-         *    - If `position` is `static` (default style or user-defined), change it to `relative` to ensure proper positioning.
-         *    - If `display`  is `inline` (default style or user-defined), change it to `block`    to ensure correct layout behavior.
-         * 
-         * 5. Iterate through `StyleFixes` to apply corrections:
-         *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
-         */
+        this.#initSytle();
+    }
+
+    /**
+     * @private
+     * ## Adjust Element Dimensions and Style Fixes
+     * ---
+     * 1. Retrieve the computed styles of the current element using `getComputedStyle()`.
+     * 2. Extract width, height, and related min/max dimensions, storing them in the `dimensions` object.
+     * 3. If both `width` and `height` are set to `auto`, adjust them based on constraints:
+     *    - Calculate `height`:
+     *      - If `max-height` is `none`:
+     *        - If `min-height` is `0px`, set `height` to `80dvh` (default height).
+     *        - Otherwise, use `min-height` as the `height`.
+     *      - Otherwise, use `max-height` as the `height`.
+     *    - Calculate `width`:
+     *      - If `max-width` is `none`:
+     *        - If `min-width` is `0px`, set `width` to `80vw` (default width).
+     *        - Otherwise, use `min-width` as the `width`.
+     *      - Otherwise, use `max-width` as the `width`.
+     * 
+     * 4. Apply style fixes:
+     *    - If `position` is `static` (default style or user-defined), change it to `relative` to ensure proper positioning.
+     *    - If `display`  is `inline` (default style or user-defined), change it to `block`    to ensure correct layout behavior.
+     * 
+     * 5. Iterate through `StyleFixes` to apply corrections:
+     *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
+     */
+    #initSytle () {
         const userStyle = getComputedStyle(this);
         const dimensions = {
             width       : userStyle.getPropertyValue("width"        ),
@@ -100,6 +107,9 @@ class MapTracer extends HTMLElement {
      *     "my"     : "/path/to/malaysia/map.svg"
      * }
      * ```
+     * 
+     *  @param {string} resCfg
+     *  @return {string} cfg:
      */
     async #configuration (
         resCfg

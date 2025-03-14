@@ -1,14 +1,8 @@
-/**
- *  Create an element for World map.
- */
+
 export class MapTracerComponentsWorld {
 
     #MapTracerObjWorld = null;
-
-    /**
-     * 
-     * @param MapPath The path of world map.svg
-     */
+    
     constructor (
         MapPath
     ) {

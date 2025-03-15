@@ -1,7 +1,6 @@
 import { MapTracerTools     as mtTools     } from "../script/Tools.js"     ;
-// import { MapTracerTaskAgent as mtTaskAgent } from "../script/TaskAgent.js" ;
 
-import { MapTracerComponentsWorld    as mtcWorld    } from "./MapTracerComponentsWorld.js"  ;
+import { MapTracerWorld    as mtcWorld    } from "./MapTracerComponentsWorld.js"  ;
 import { MapTracerComponentsCountry  as mtcCountry  } from "./MapTracerComponentsCountry.js";
 
 
@@ -34,26 +33,30 @@ class MapTracer extends HTMLElement {
      * @type {Object.<string, string>}
      */
     #MapTracerAttribute = {
-        "res-map": `${this.MapTracerDefaultValueHost}/data/resMap.json`,
-        "visited": ""
+        "res-map"   : `${this.MapTracerDefaultValueHost}/data/resMap.json` ,
+        "visited"   : `${this.MapTracerDefaultValueHost}/data/visited.json`,
+        "map-style" : `${this.MapTracerDefaultValueHost}/src/styles/map.css`
     };
 
     #visitedData    = {};
     #visitedCountry = [];
 
-    #componentsWorld;
+    #componentsWorld = new mtcWorld();
 
     #mtTools    ;
     #mtTaskAgent;
 
+    /** innerStyle @type {string} */
+    innerStyle;
+
     constructor () {
         super();
 
-        this.#mtTools       = new mtTools()     ;
-        // this.#mtTaskAgent   = new mtTaskAgent() ;
+        this.#mtTools = new mtTools();
 
-        this.#init.style();
-        this.#init.attr();
+        this.#init.style()      ;
+        this.#init.attr()       ;
+        this.#init.innerStyle() ;
     }
 
     async connectedCallback () {
@@ -61,11 +64,31 @@ class MapTracer extends HTMLElement {
             mode: "open"
         });
 
-        // To get map file
-         this.#defaultResource = await this.#configuration(
+        // Get Map Configuration
+        this.#defaultResource = await this.#configuration(
             this.#MapTracerAttribute["res-map"]
         );
-        console.log(this.#defaultResource);
+
+        // Set world map
+        this.#componentsWorld.init(
+            this.#defaultResource["world"]
+        );
+
+        const MapWorld = document.createElement("div");
+        MapWorld.setAttribute(
+            "id",
+            "MapTracer-World"
+        );
+        MapWorld.appendChild(
+            this.#componentsWorld.object
+        );
+        
+        // Settings Components inner style.
+        const style = document.createElement("style");
+        style.textContent = this.innerStyle;
+        shadow.appendChild(style);
+
+        shadow.appendChild(MapWorld);
     }
 
     /**
@@ -87,9 +110,9 @@ class MapTracer extends HTMLElement {
      * ### Example Configuration:
      * ```json
      * {
-     *   "world": "/your/world/svg/file/path/map.svg",
-     *   "country": "/path/to/all/country/maps",
-     *   "my": "/path/to/malaysia/map.svg"
+     *   "world"    : "/your/world/svg/file/path/map.svg",
+     *   "country"  : "/path/to/all/country/maps",
+     *   "my"       : "/path/to/malaysia/map.svg"
      * }
      * ```
      *
@@ -200,6 +223,47 @@ class MapTracer extends HTMLElement {
 
                     this.#MapTracerAttribute[attr] = userAttr || this.#MapTracerAttribute[attr];
                 });
+            },
+
+            /**
+             * ## Inject Inner Styles for MapTracer
+             * ---
+             * Dynamically generates and applies styles for the MapTracer world and its object.
+             */
+            innerStyle: () => {
+                let Style_MapTracer_World = `
+                /* MapTracer World */
+                #MapTracer-World {
+
+                    position: absolute;
+
+                    left  : 0;
+                    right : 0;
+                    top   : 0;
+                    bottom: 0;
+
+                    margin: auto;
+
+                    height: ${this.style.height};
+                    width : ${this.style.width };
+                }
+                `;
+
+                let Style_MapTracer_Obj = `
+                /* MapTracer World Object */
+                #MapTracer-World object {
+                    position  : absolute;
+                    left      : 0;
+                    right     : 0;
+                    top       : 0;
+                    bottom    : 0;
+                    margin    : auto;
+                    max-height: 100%;
+                    max-width : 100%;
+                }
+                `;
+
+                this.innerStyle = `${Style_MapTracer_World}${Style_MapTracer_Obj}`;
             }
         }
     }
@@ -233,7 +297,7 @@ class MapTracer extends HTMLElement {
         MapTracerBoxWorld.append(
             this.#componentsWorld.getMapTracer()
         );
-
+v
         const style = document.createElement("style");
         style.textContent = `
             #MapTracer-MapBox-World {

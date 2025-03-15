@@ -3,7 +3,12 @@
 }
 
 .visited {
-    fill: #000000;
+    fill: red;
 
     cursor: pointer;
+    transition: fill 1s;
+}
+
+.visited:hover {
+    fill: black;
 }

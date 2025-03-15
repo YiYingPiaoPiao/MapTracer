@@ -1,9 +1,22 @@
+/**
+ *  ## Tools of MapTracer
+ * ---
+ */
 export class MapTracerTools {
     
     constructor () {
 
     }
 
+    /**
+     * ## Get Json
+     * ---
+     * 
+     * 
+     * 
+     * @param   {string} url The json url path.
+     * @return  {json}  
+     */
     async getJson (
         url
     ) {

@@ -1,7 +1,5 @@
-import { MapTracerTools     as mtTools     } from "../script/Tools.js"     ;
-
+import { MapTracerTools    as mtTools     } from "../script/Tools.js"   ;
 import { MapTracerWorld    as mtcWorld    } from "./MapTracerWorld.js"  ;
-
 
 /**
  *  ## MapTracer
@@ -79,12 +77,21 @@ class MapTracer extends HTMLElement {
         MapWorld.appendChild(
             this.#componentsWorld.object
         );
+
+        // init visited list
+        const MapTracerListVisited = document.createElement("div");
+        MapTracerListVisited.setAttribute(
+            "id",
+            "MapTracer-List-Visited"
+        );
         
         // Settings Components inner style.
         const style = document.createElement("style");
         style.textContent = this.innerStyle;
         shadow.appendChild(style);
-        shadow.appendChild(MapWorld);
+        
+        shadow.appendChild(MapWorld             );
+        shadow.appendChild(MapTracerListVisited );
 
         // Set data when loaded svg maps
         this.#visitedData = await this.#mtTools.getJson(
@@ -93,10 +100,13 @@ class MapTracer extends HTMLElement {
         this.#visitedCountry = Object.keys(this.#visitedData);
 
         // Process loded function
-        this.#componentsWorld.loaded(
+        await this.#componentsWorld.loaded(
             this.#MapTracerAttribute["map-style"],
             this.#visitedCountry
         );
+
+        // Bind events listen
+        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e));
     }
 
     /**

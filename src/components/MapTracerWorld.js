@@ -45,22 +45,26 @@ export class MapTracerWorld {
      * @param {string       } pathStyle 
      * @param {Array<string>} listVisited 
      */
-    loaded (
+    async loaded (
         pathStyle,
         listVisited
     ) {
-        this.#MapTracerObj.addEventListener("load", () => {
-            let svg = this.#MapTracerObj.contentDocument;
-            
-            this.#load.mapStyle(
-                svg,
-                pathStyle
-            );
+        return new Promise((resolve) => {
+            this.#MapTracerObj.addEventListener("load", () => {
+                let svg = this.#MapTracerObj.contentDocument;
 
-            this.#load.visited(
-                svg,
-                listVisited
-            )
+                this.#load.mapStyle(
+                    svg,
+                    pathStyle
+                );
+    
+                this.#load.visited(
+                    svg,
+                    listVisited
+                );
+
+                resolve(svg);
+            });
         });
     }
 
@@ -86,7 +90,7 @@ export class MapTracerWorld {
             ) => {
                 const style = document.createElement("style");
                 style.setAttribute("type", "text/css");
-                style.textContent = `@import url('${pathStyle}');`;
+                style.textContent = ` @import url('${pathStyle} ');`;
                 svg.querySelector("defs").appendChild(
                     style
                 );
@@ -103,6 +107,31 @@ export class MapTracerWorld {
                 visited.forEach((country) => {
                     svg.querySelector(`#${country}`).classList.add("visited");
                 });
+            }
+        }
+    }
+
+    /**
+     *  Settings events listener
+     */
+    get MapEvents() {
+        return {
+
+            /**
+             * Click events
+             * 
+             * @param {Event} e Events
+             */
+            MapClick: (
+                e
+            ) => {
+
+                // If not a visited place, pass.
+                if (!e.target.classList.contains("visited")) {
+                    return;
+                }
+
+                console.log(e.target.id);
             }
         }
     }

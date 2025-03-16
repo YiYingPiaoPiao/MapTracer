@@ -123,7 +123,8 @@ export class MapTracerWorld {
              * @param {Event} e Events
              */
             MapClick: (
-                e
+                e,
+                callback
             ) => {
 
                 // If not a visited place, pass.
@@ -131,7 +132,8 @@ export class MapTracerWorld {
                     return;
                 }
 
-                console.log(e.target.id);
+                // console.log(e.target.id);
+                callback(e.target.id);
             }
         }
     }

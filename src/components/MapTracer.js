@@ -1,5 +1,7 @@
 import { MapTracerTools    as mtTools     } from "../script/Tools.js"   ;
+
 import { MapTracerWorld    as mtcWorld    } from "./MapTracerWorld.js"  ;
+import { MapTracerCountry  as mtcCountry  } from "./MapTracerCountry.js";
 
 /**
  *  ## MapTracer
@@ -38,7 +40,8 @@ class MapTracer extends HTMLElement {
     #visitedData    = {};
     #visitedCountry = [];
 
-    #componentsWorld = new mtcWorld();
+    #componentsWorld  = new mtcWorld  ();
+    #componentsCoutry = new mtcCountry();
 
     #mtTools     = new mtTools();
     #mtTaskAgent;
@@ -106,9 +109,20 @@ class MapTracer extends HTMLElement {
         );
 
         // Bind events listen
-        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, (el) => {
+        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, async (el) => {
 
-            console.log(el.id);
+            let CountryId = el.id;
+
+            let resourcePath =
+                this.#defaultResource[CountryId.toLowerCase()] ||
+                this.#defaultResource[CountryId.toUpperCase()] ||
+                this.#defaultResource[CountryId]               ||
+                `${this.#defaultResource["country"]}${CountryId.toLowerCase()}.svg`;
+
+            await this.#componentsCoutry.init(
+                resourcePath,
+                el
+            );
         }));
     }
 
@@ -288,50 +302,6 @@ class MapTracer extends HTMLElement {
             }
         }
     }
-
-        // const MapBox_World_Object = MapBox_World.querySelector("object");
-        // MapBox_World_Object.addEventListener("load", () => {
-        //     let svgWorld = MapBox_World_Object.contentDocument;
-
-        //     this.#visitedCountry.forEach(country => {
-        //         svgWorld.querySelector(`#${country}`).classList.add("visited");
-        //     });
-
-        //     svgWorld.addEventListener("mouseover", (e) => {
-        //         if (!e.target.classList.contains("visited")) {
-        //             return;
-        //         }
-
-        //         let country_svg = `https://raw.githubusercontent.com/SeeChen/seechen.github.io/refs/heads/main/File/Maps/${e.target.id}_High.svg`;
-        //         fetch(country_svg)
-        //             .then(response => response.text())
-        //             .then(svgTxt => {
-        //                 const parser = new DOMParser();
-        //                 const svgDoc = parser.parseFromString(svgTxt, "image/svg+xml");
-
-        //                 const svgElement = svgDoc.documentElement;
-        //                 const svgGroup = svgElement.querySelector("g");
-                        
-        //                 const bbox = e.target.getBBox();
-        //                 const bboxX = bbox.x;
-        //                 const bboxY = bbox.y;
-        //                 const bboxW = bbox.width;
-        //                 const bboxH = bbox.height;
-
-        //                 const viewBox = svgElement.getAttribute("viewBox").split(" ").map(Number);
-        //                 const vW = viewBox[2];
-        //                 const vH = viewBox[3];
-
-        //                 let scaleX = bboxW / vW;
-        //                 let scaleY = bboxH / vH;
-
-        //                 svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`)
-        //                 e.target.parentNode.replaceChild(svgGroup, e.target);
-
-        //             })
-        //             .catch(err => console.log("Error"));
-        //     });
-        // });
 }
 
 customElements.define("map-tracer", MapTracer);

@@ -132,8 +132,7 @@ export class MapTracerWorld {
                     return;
                 }
 
-                // console.log(e.target.id);
-                callback(e.target.id);
+                callback(e.target);
             }
         }
     }

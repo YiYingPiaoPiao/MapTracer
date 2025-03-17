@@ -106,9 +106,9 @@ class MapTracer extends HTMLElement {
         );
 
         // Bind events listen
-        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, (id) => {
-            // Callback function
-            console.log(id);
+        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, (el) => {
+
+            console.log(el.id);
         }));
     }
 

@@ -90,7 +90,7 @@ export class MapTracerWorld {
             ) => {
                 const style = document.createElement("style");
                 style.setAttribute("type", "text/css");
-                style.textContent = ` @import url('${pathStyle} ');`;
+                style.textContent = ` @import url('${pathStyle}'); `;
                 svg.querySelector("defs").appendChild(
                     style
                 );

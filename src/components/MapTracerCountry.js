@@ -21,7 +21,7 @@ export class MapTracerCountry {
             );
         }
 
-        await fetch(MapPath)
+        return await fetch(MapPath)
                 .then(response => response.text())
                 .then(svgText => {
                     const parser = new DOMParser();
@@ -29,6 +29,8 @@ export class MapTracerCountry {
 
                     const svgElement = svgDoc.documentElement;
                     const svgGroup = svgElement.querySelector("g");
+
+                    svgGroup.classList.add("map-country");
                 
                     const bbox = el.getBBox();
                     const bboxX = bbox.x;
@@ -44,7 +46,9 @@ export class MapTracerCountry {
                     let scaleY = bboxH / vH;
 
                     svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`);
-                    el.parentNode.replaceChild(svgGroup, el);
+
+                    return svgGroup;
+                    // el.parentNode.replaceChild(svgGroup, el);
                 })
                 .catch(err => console.log(`Error: ${err}`));
     }

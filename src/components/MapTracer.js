@@ -119,10 +119,20 @@ class MapTracer extends HTMLElement {
                 this.#defaultResource[CountryId]               ||
                 `${this.#defaultResource["country"]}${CountryId.toLowerCase()}.svg`;
 
-            await this.#componentsCoutry.init(
+            let svgCountry = await this.#componentsCoutry.init(
                 resourcePath,
                 el
             );
+            
+            el.parentNode.appendChild(svgCountry);
+            el.parentNode.parentNode.querySelector("defs").querySelector("style").textContent += `
+            .land:not(.map-country .land) {
+                fill        : rgba(0, 0, 0, 0);
+                background  : rgba(0, 0, 0, 0);
+            }
+            `;
+
+            svgCountry.setAttribute("transform", `translate(0, 0) scale(1, 1)`);
         }));
     }
 

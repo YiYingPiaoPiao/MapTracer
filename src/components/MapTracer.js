@@ -109,31 +109,59 @@ class MapTracer extends HTMLElement {
         );
 
         // Bind events listen
-        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, async (el) => {
+        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, this.country.loadMaps));
+    }
 
-            let CountryId = el.id;
-
-            let resourcePath =
-                this.#defaultResource[CountryId.toLowerCase()] ||
-                this.#defaultResource[CountryId.toUpperCase()] ||
-                this.#defaultResource[CountryId]               ||
-                `${this.#defaultResource["country"]}${CountryId.toLowerCase()}.svg`;
-
-            let svgCountry = await this.#componentsCoutry.init(
-                resourcePath,
+    /**
+     *  ## Country function
+     */
+    get country() {
+        return {
+            /**
+             * Loading Country function
+             */
+            loadMaps: async (
                 el
-            );
-            
-            el.parentNode.appendChild(svgCountry);
-            el.parentNode.parentNode.querySelector("defs").querySelector("style").textContent += `
-            .land:not(.map-country .land) {
-                fill        : rgba(0, 0, 0, 0);
-                background  : rgba(0, 0, 0, 0);
-            }
-            `;
+            ) => {
+                let CountryId = el.id;
+                
+                let resourcePath = 
+                    this.#defaultResource[CountryId.toLowerCase()] ||
+                    this.#defaultResource[CountryId.toUpperCase()] ||
+                    this.#defaultResource[CountryId]               ||
+                    `${this.#defaultResource["country"]}${CountryId.toLowerCase()}.svg`;
 
-            svgCountry.setAttribute("transform", `translate(0, 0) scale(1, 1)`);
-        }));
+                let svgCountryData = await this.#componentsCoutry.init (
+                    resourcePath,
+                    el
+                );
+                let svgCountry = svgCountryData["svgGroup"];
+                let viewBox    = svgCountryData["viewBox" ];
+
+                let pathChild = svgCountry.querySelectorAll("path");
+
+                const parentBox = el.parentNode;
+                // while(parentBox.firstChild) {
+                //     parentBox.removeChild(parentBox.firstChild);
+                // }
+
+                parentBox.appendChild(svgCountry);
+                // parentBox.parentNode.querySelector("defs").querySelector("style").textContent += `
+                // .land:not(.map-country .land) {
+                //     fill        : rgba(0, 0, 0, 0);
+                //     background  : rgba(0, 0, 0, 0);
+                // }
+                // `;
+
+                // svgCountry.setAttribute("transform", `translate(0, 0) scale(1, 1)`);
+
+                pathChild.forEach(chi => {
+                    parentBox.appendChild(chi);
+                })
+                parentBox.removeChild(svgCountry);
+                // parentBox.parentNode.setAttribute("viewBox", `${viewBox[0]} ${viewBox[1]} ${viewBox[2]} ${viewBox[3]}`);
+            }
+        }
     }
 
     /**

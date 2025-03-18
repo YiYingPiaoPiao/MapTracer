@@ -47,8 +47,10 @@ export class MapTracerCountry {
 
                     svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`);
 
-                    return svgGroup;
-                    // el.parentNode.replaceChild(svgGroup, el);
+                    return {
+                        svgGroup: svgGroup,
+                        viewBox : viewBox
+                    };
                 })
                 .catch(err => console.log(`Error: ${err}`));
     }

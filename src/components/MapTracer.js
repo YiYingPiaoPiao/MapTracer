@@ -8,7 +8,8 @@ import { MapTracerCountry  as mtcCountry  } from "./MapTracerCountry.js";
  */
 class MapTracer extends HTMLElement {
 
-    MapTracerDefaultValueHost = "http://127.0.0.1:5500";
+    // MapTracerDefaultValueHost = "http://127.0.0.1:5500";
+    MapTracerDefaultValueHost = "http://192.168.3.116:5500";
 
     /** Resource Configuration File Path. @private @type {string} */
     #defaultResource;
@@ -73,6 +74,7 @@ class MapTracer extends HTMLElement {
         );
 
         const MapWorld = document.createElement("div");
+        MapWorld.classList.add("MapTracer-SVG");
         MapWorld.setAttribute(
             "id",
             "MapTracer-World"
@@ -80,14 +82,17 @@ class MapTracer extends HTMLElement {
         MapWorld.appendChild(
             this.#componentsWorld.object
         );
-        MapWorld.style.willChange = "transform";
 
         // Initial Country Maps
-        // const MapCountry = document.createElement("div");
-        // MapCountry.setAttribute(
-        //     "id",
-        //     "MapTracer-Country"
-        // );
+        const MapCountry = document.createElement("div");
+        MapCountry.classList.add("MapTracer-SVG");
+        MapCountry.setAttribute(
+            "id",
+            "MapTracer-Country"
+        );
+        MapCountry.append(
+            this.#componentsCoutry.object
+        );
 
         // init visited list
         const MapTracerListVisited = document.createElement("div");
@@ -102,6 +107,7 @@ class MapTracer extends HTMLElement {
         shadow.appendChild(style);
         
         shadow.appendChild(MapWorld             );
+        shadow.appendChild(MapCountry           );
         shadow.appendChild(MapTracerListVisited );
 
         // Set data when loaded svg maps
@@ -152,6 +158,23 @@ class MapTracer extends HTMLElement {
                 let animateTransform = svgCountry.querySelectorAll("animateTransform");
 
                 const parentBox = el.parentNode;
+
+                parentBox.parentNode.querySelector("defs").querySelector("style").textContent += `
+                .land:not(.map-country .land) {
+                    fill        : rgba(0, 0, 0, 0);
+                    background  : rgba(0, 0, 0, 0);
+                    transition  : all 0.5s;
+                }
+
+                #${CountryId} {
+                    fill        : rgba(0, 0, 0, 0);
+                    background  : rgba(0, 0, 0, 0);
+                    transition  : all 1s;
+                }
+                `;
+
+                await new Promise(r => setTimeout(r, 500));
+
                 while(parentBox.firstChild) {
                     parentBox.removeChild(parentBox.firstChild);
                 }
@@ -168,19 +191,6 @@ class MapTracer extends HTMLElement {
                     animate.beginElement();
                 });
 
-                // parentBox.parentNode.querySelector("defs").querySelector("style").textContent += `
-                // .land:not(.map-country .land) {
-                //     fill        : rgba(0, 0, 0, 0);
-                //     background  : rgba(0, 0, 0, 0);
-                // }
-                // `;
-
-                // svgCountry.setAttribute("transform", `translate(0, 0) scale(1, 1)`);
-
-                // pathChild.forEach(chi => {
-                //     parentBox.appendChild(chi);
-                // })
-                // parentBox.removeChild(svgCountry);
                 setTimeout(() => {
                     parentBox.parentNode.appendChild(animateViewBox);
                     animateViewBox.beginElement();
@@ -350,14 +360,15 @@ class MapTracer extends HTMLElement {
                 let Style_MapTracer_Obj = `
                 /* MapTracer World Object */
                 #MapTracer-World object {
-                    position  : absolute;
-                    left      : 0;
-                    right     : 0;
-                    top       : 0;
-                    bottom    : 0;
-                    margin    : auto;
-                    max-height: 100%;
-                    max-width : 100%;
+                    position   : absolute;
+                    left       : 0;
+                    right      : 0;
+                    top        : 0;
+                    bottom     : 0;
+                    margin     : auto;
+                    max-height : 100%;
+                    max-width  : 100%;
+                    will-change: transform;
                 }
                 `;
 

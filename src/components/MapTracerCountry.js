@@ -5,12 +5,24 @@
  */
 export class MapTracerCountry {
 
-    constructor () {}
+    #MapTracerCountryObj;
+
+    constructor () {
+        this.#MapTracerCountryObj = document.createElement("object");
+        this.#MapTracerCountryObj.setAttribute("type", "image/svg+xml");
+    }
+
+    get object() {
+        return this.#MapTracerCountryObj;
+    }
 
     async init (
         MapPath,
         el
     ) {
+
+        this.#MapTracerCountryObj.setAttribute("data", MapPath);
+        return;
         if (
             typeof MapPath !== "string" ||
             !MapPath.trim()             ||

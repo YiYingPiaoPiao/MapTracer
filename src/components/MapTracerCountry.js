@@ -45,8 +45,29 @@ export class MapTracerCountry {
                     let scaleX = bboxW / vW;
                     let scaleY = bboxH / vH;
 
-                    svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`);
+                    // svgGroup.setAttribute("style", `transform: translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY});`);
+                    // svgGroup.setAttribute("transform", `translate(${bboxX}, ${bboxY}) scale(${scaleX}, ${scaleY})`);
 
+                    const animateTranslate = document.createElementNS("http://www.w3.org/2000/svg", "animateTransform");
+                    animateTranslate.setAttribute("attributeName", "transform");
+                    animateTranslate.setAttribute("type", "translate");
+                    animateTranslate.setAttribute("from", `${bboxX} ${bboxY}`);
+                    animateTranslate.setAttribute("to", "0 0");
+                    animateTranslate.setAttribute("dur", "0.5s");
+                    animateTranslate.setAttribute("fill", "freeze");
+                    animateTranslate.setAttribute("additive", "sum");
+
+                    const animateScale = document.createElementNS("http://www.w3.org/2000/svg", "animateTransform");
+                    animateScale.setAttribute("attributeName", "transform");
+                    animateScale.setAttribute("type", "scale");
+                    animateScale.setAttribute("from", `${scaleX} ${scaleY}`);
+                    animateScale.setAttribute("to", "1 1");
+                    animateScale.setAttribute("dur", "0.5s");
+                    animateScale.setAttribute("fill", "freeze");
+                    animateScale.setAttribute("additive", "sum");
+
+                    svgGroup.appendChild(animateTranslate);
+                    svgGroup.appendChild(animateScale);
                     return {
                         svgGroup: svgGroup,
                         viewBox : viewBox

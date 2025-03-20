@@ -80,6 +80,14 @@ class MapTracer extends HTMLElement {
         MapWorld.appendChild(
             this.#componentsWorld.object
         );
+        MapWorld.style.willChange = "transform";
+
+        // Initial Country Maps
+        // const MapCountry = document.createElement("div");
+        // MapCountry.setAttribute(
+        //     "id",
+        //     "MapTracer-Country"
+        // );
 
         // init visited list
         const MapTracerListVisited = document.createElement("div");
@@ -119,6 +127,8 @@ class MapTracer extends HTMLElement {
         return {
             /**
              * Loading Country function
+             * 
+             * @param {HTMLElement} el 
              */
             loadMaps: async (
                 el
@@ -139,13 +149,25 @@ class MapTracer extends HTMLElement {
                 let viewBox    = svgCountryData["viewBox" ];
 
                 let pathChild = svgCountry.querySelectorAll("path");
+                let animateTransform = svgCountry.querySelectorAll("animateTransform");
 
                 const parentBox = el.parentNode;
-                // while(parentBox.firstChild) {
-                //     parentBox.removeChild(parentBox.firstChild);
-                // }
+                while(parentBox.firstChild) {
+                    parentBox.removeChild(parentBox.firstChild);
+                }
+
+                const animateViewBox = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+                animateViewBox.setAttribute("attributeName", "viewBox");
+                animateViewBox.setAttribute("from", parentBox.parentNode.getAttribute("viewBox"));
+                animateViewBox.setAttribute("to", `${viewBox[0]} ${viewBox[1]} ${viewBox[2]} ${viewBox[3]}`);
+                animateViewBox.setAttribute("dur", "0.5s");
+                animateViewBox.setAttribute("fill", "freeze");
 
                 parentBox.appendChild(svgCountry);
+                animateTransform.forEach(animate => {
+                    animate.beginElement();
+                });
+
                 // parentBox.parentNode.querySelector("defs").querySelector("style").textContent += `
                 // .land:not(.map-country .land) {
                 //     fill        : rgba(0, 0, 0, 0);
@@ -155,11 +177,14 @@ class MapTracer extends HTMLElement {
 
                 // svgCountry.setAttribute("transform", `translate(0, 0) scale(1, 1)`);
 
-                pathChild.forEach(chi => {
-                    parentBox.appendChild(chi);
-                })
-                parentBox.removeChild(svgCountry);
-                // parentBox.parentNode.setAttribute("viewBox", `${viewBox[0]} ${viewBox[1]} ${viewBox[2]} ${viewBox[3]}`);
+                // pathChild.forEach(chi => {
+                //     parentBox.appendChild(chi);
+                // })
+                // parentBox.removeChild(svgCountry);
+                setTimeout(() => {
+                    parentBox.parentNode.appendChild(animateViewBox);
+                    animateViewBox.beginElement();
+                }, 50);
             }
         }
     }

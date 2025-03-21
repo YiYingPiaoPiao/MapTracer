@@ -8,8 +8,7 @@ import { MapTracerCountry  as mtcCountry  } from "./MapTracerCountry.js";
  */
 class MapTracer extends HTMLElement {
 
-    // MapTracerDefaultValueHost = "http://127.0.0.1:5500";
-    MapTracerDefaultValueHost = "http://192.168.3.116:5500";
+    MapTracerDefaultValueHost = "http://127.0.0.1:5500";
 
     /** Resource Configuration File Path. @private @type {string} */
     #defaultResource;

@@ -20,9 +20,6 @@ export class MapTracerCountry {
         MapPath,
         el
     ) {
-
-        this.#MapTracerCountryObj.setAttribute("data", MapPath);
-        return;
         if (
             typeof MapPath !== "string" ||
             !MapPath.trim()             ||
@@ -32,6 +29,16 @@ export class MapTracerCountry {
                 `The parameter "MapPath" is required and cannot be empty or "undefined". Ensure you are passing a valid map path.`
             );
         }
+
+        const oldMap = el.parentNode.getBoundingClientRect();
+        const newMap = el.getBoundingClientRect();
+
+        this.#MapTracerCountryObj.setAttribute("data", MapPath);
+
+        this.#MapTracerCountryObj.parentNode.style.height  = `${newMap.height}px`;
+        this.#MapTracerCountryObj.parentNode.style.width   = `${newMap.width}px`;
+        this.#MapTracerCountryObj.parentNode.style.top     = `${oldMap.top  + newMap.top}px`;
+        this.#MapTracerCountryObj.parentNode.style.left    = `${oldMap.left + newMap.left}px`;
 
         return await fetch(MapPath)
                 .then(response => response.text())

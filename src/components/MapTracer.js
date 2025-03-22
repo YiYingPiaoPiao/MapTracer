@@ -3,200 +3,266 @@ import { MapTracerTools    as mtTools     } from "../script/Tools.js"   ;
 import { MapTracerWorld    as mtcWorld    } from "./MapTracerWorld.js"  ;
 import { MapTracerCountry  as mtcCountry  } from "./MapTracerCountry.js";
 
-/**
- *  ## MapTracer
- */
 class MapTracer extends HTMLElement {
 
-    MapTracerDefaultValueHost = "http://127.0.0.1:5500";
+    defaultHost = "http://127.0.0.1:5500";
+    #Attributes = {
+        "map-res"   : `${this.defaultHost}/data/resMap.json`    ,
+        "map-style" : `${this.defaultHost}/src/styles/map.css`  ,
+        "visited"   : `${this.defaultHost}/data/visited.json`
+    }
 
-    /** Resource Configuration File Path. @private @type {string} */
-    #defaultResource;
-
-    /**
-     * ## MapTracer Attributes
-     * ---
-     * Stores default attribute values for the MapTracer component.
-     * If the user sets these attributes, their values will override the defaults.
-     * 
-     * ### Attributes:
-     * 1. **`res-map`**  - Path to the map SVG resource configuration file.
-     * 2. **`visited`**  - Records accessed configuration files. Must follow a specified format.
-     * 
-     * ---
-     * ### Note:
-     * - All attributes have predefined default values.
-     * - If the user specifies an attribute, its value will be updated accordingly.
-     * 
-     * @private
-     * @type {Object.<string, string>}
-     */
-    #MapTracerAttribute = {
-        "res-map"   : `${this.MapTracerDefaultValueHost}/data/resMap.json` ,
-        "visited"   : `${this.MapTracerDefaultValueHost}/data/visited.json`,
-        "map-style" : `${this.MapTracerDefaultValueHost}/src/styles/map.css`
-    };
-
-    #visitedData    = {};
-    #visitedCountry = [];
-
-    #componentsWorld  = new mtcWorld  ();
-    #componentsCoutry = new mtcCountry();
-
-    #mtTools     = new mtTools();
-    #mtTaskAgent;
-
-    /** innerStyle @type {string} */
     innerStyle;
 
     constructor () {
         super();
 
-        this.#init.style()      ;
-        this.#init.attr()       ;
-        this.#init.innerStyle() ;
+        this.#initialization.attributes ();
+        this.#initialization.styleTag   ();
+        this.#initialization.styleInner ();
     }
 
-    async connectedCallback () {
+    async connectedCallback() {
         const shadow = this.attachShadow({
             mode: "open"
         });
-
-        // Get Map Configuration
-        this.#defaultResource = await this.#configuration(
-            this.#MapTracerAttribute["res-map"]
-        );
-
-        // Set world map
-        this.#componentsWorld.init(
-            this.#defaultResource["world"]
-        );
-
-        const MapWorld = document.createElement("div");
-        MapWorld.classList.add("MapTracer-SVG");
-        MapWorld.setAttribute(
-            "id",
-            "MapTracer-World"
-        );
-        MapWorld.appendChild(
-            this.#componentsWorld.object
-        );
-
-        // Initial Country Maps
-        const MapCountry = document.createElement("div");
-        MapCountry.classList.add("MapTracer-SVG");
-        MapCountry.setAttribute(
-            "id",
-            "MapTracer-Country"
-        );
-        MapCountry.append(
-            this.#componentsCoutry.object
-        );
-
-        // init visited list
-        const MapTracerListVisited = document.createElement("div");
-        MapTracerListVisited.setAttribute(
-            "id",
-            "MapTracer-List-Visited"
-        );
         
-        // Settings Components inner style.
-        const style = document.createElement("style");
-        style.textContent = this.innerStyle;
-        shadow.appendChild(style);
-        
-        shadow.appendChild(MapWorld             );
-        shadow.appendChild(MapCountry           );
-        shadow.appendChild(MapTracerListVisited );
-
-        // Set data when loaded svg maps
-        this.#visitedData = await this.#mtTools.getJson(
-            this.#MapTracerAttribute["visited"]
-        )
-        this.#visitedCountry = Object.keys(this.#visitedData);
-
-        // Process loded function
-        await this.#componentsWorld.loaded(
-            this.#MapTracerAttribute["map-style"],
-            this.#visitedCountry
-        );
-
-        // Bind events listen
-        this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, this.country.loadMaps));
     }
+
+    get #initialization () {
+        return {
+            attributes: () => {
+                Object.keys(this.#Attributes).forEach(
+                    (attribute) => {
+                        let attr = this.getAttribute(attribute)?.trim();
+                        if (
+                            !attr               ||
+                            attr === ""         ||
+                            attr === "undefined"
+                        ) {
+                            console.warn(`The attribute [${attribute}] is not set or empty, using default value:\n ${this.#Attributes[attribute]}`);
+                        }
+
+                        this.#Attributes[attribute] = attr || this.#Attributes[attribute];
+                    }
+                );
+                console.log(this.#Attributes);
+            },
+
+            styleTag: () => {
+                const userStyle = getComputedStyle(this);
+                const dimensions = {
+                    width       : userStyle.getPropertyValue("width"        ),
+                    height      : userStyle.getPropertyValue("height"       ),
+                    minHeight   : userStyle.getPropertyValue("min-height"   ),
+                    maxHeight   : userStyle.getPropertyValue("max-height"   ),
+                    minWidth    : userStyle.getPropertyValue("min-width"    ),
+                    maxWidth    : userStyle.getPropertyValue("max-width"    ),
+                }
+                if (
+                    dimensions.width  === "auto" &&
+                    dimensions.height === "auto"
+                ) {
+                    this.style.height = dimensions.maxHeight === "none" ? (dimensions.minHeight === "0px" ? "80dvh" : dimensions.minHeight) : dimensions.maxHeight;
+                    this.style.width  = dimensions.maxWidth  === "none" ? (dimensions.minWidth  === "0px" ? "80vw"  : dimensions.minWidth ) : dimensions.minWidth ;
+                }
+                const StyleFixes = {
+                    position: (value) => (value === "static" ? "relative"   : ""),
+                    display : (value) => (value === "inline" ? "block"      : ""),
+                };
+                Object.entries(StyleFixes).forEach(([prop, fix]) => {
+                    const userValue = userStyle.getPropertyValue(prop);
+                    const newValue  = fix(userValue);
+                    if (newValue) this.style[prop] = newValue;
+                });
+            },
+
+            styleInner: () => {
+                let style_Map_MapTracer = `
+                div.MapTracer-Map {
+
+                    position: absolute;
+
+                    left  : 0;
+                    right : 0;
+                    top   : 0;
+                    bottom: 0;
+
+                    margin: auto;
+
+                    height: ${this.style.height};
+                    width : ${this.style.width };
+                }
+                `;
+
+                let style_Object_MapTracer = `
+                div.MapTracer-Map object {
+                    position   : absolute;
+                    left       : 0;
+                    right      : 0;
+                    top        : 0;
+                    bottom     : 0;
+                    margin     : auto;
+                    max-height : 100%;
+                    max-width  : 100%;
+                    will-change: transform;
+                }
+                `;
+
+                this.innerStyle = `${style_Map_MapTracer}${style_Object_MapTracer}`
+            }
+        }
+    }
+
+    // #visitedData    = {};
+    // #visitedCountry = [];
+
+    // #componentsWorld  = new mtcWorld  ();
+    // #componentsCoutry = new mtcCountry();
+
+    // #mtTools     = new mtTools();
+    // #mtTaskAgent;
+
+    // async connectedCallback () {
+    //     const shadow = this.attachShadow({
+    //         mode: "open"
+    //     });
+
+    //     // Get Map Configuration
+    //     this.#defaultResource = await this.#configuration(
+    //         this.#MapTracerAttribute["res-map"]
+    //     );
+
+    //     // Set world map
+    //     this.#componentsWorld.init(
+    //         this.#defaultResource["world"]
+    //     );
+
+    //     const MapWorld = document.createElement("div");
+    //     MapWorld.classList.add("MapTracer-SVG");
+    //     MapWorld.setAttribute(
+    //         "id",
+    //         "MapTracer-World"
+    //     );
+    //     MapWorld.appendChild(
+    //         this.#componentsWorld.object
+    //     );
+
+    //     // Initial Country Maps
+    //     const MapCountry = document.createElement("div");
+    //     MapCountry.classList.add("MapTracer-SVG");
+    //     MapCountry.setAttribute(
+    //         "id",
+    //         "MapTracer-Country"
+    //     );
+    //     MapCountry.append(
+    //         this.#componentsCoutry.object
+    //     );
+
+    //     // init visited list
+    //     const MapTracerListVisited = document.createElement("div");
+    //     MapTracerListVisited.setAttribute(
+    //         "id",
+    //         "MapTracer-List-Visited"
+    //     );
+        
+    //     // Settings Components inner style.
+    //     const style = document.createElement("style");
+    //     style.textContent = this.innerStyle;
+    //     shadow.appendChild(style);
+        
+    //     shadow.appendChild(MapWorld             );
+    //     shadow.appendChild(MapCountry           );
+    //     shadow.appendChild(MapTracerListVisited );
+
+    //     // Set data when loaded svg maps
+    //     this.#visitedData = await this.#mtTools.getJson(
+    //         this.#MapTracerAttribute["visited"]
+    //     )
+    //     this.#visitedCountry = Object.keys(this.#visitedData);
+
+    //     // Process loded function
+    //     await this.#componentsWorld.loaded(
+    //         this.#MapTracerAttribute["map-style"],
+    //         this.#visitedCountry
+    //     );
+
+    //     // Bind events listen
+    //     this.#componentsWorld.object.contentDocument.addEventListener("click", (e) => this.#componentsWorld.MapEvents.MapClick(e, this.country.loadMaps));
+    // }
 
     /**
      *  ## Country function
      */
-    get country() {
-        return {
-            /**
-             * Loading Country function
-             * 
-             * @param {HTMLElement} el 
-             */
-            loadMaps: async (
-                el
-            ) => {
-                let CountryId = el.id;
+    // get country() {
+    //     return {
+    //         /**
+    //          * Loading Country function
+    //          * 
+    //          * @param {HTMLElement} el 
+    //          */
+    //         loadMaps: async (
+    //             el
+    //         ) => {
+    //             let CountryId = el.id;
                 
-                let resourcePath = 
-                    this.#defaultResource[CountryId.toLowerCase()] ||
-                    this.#defaultResource[CountryId.toUpperCase()] ||
-                    this.#defaultResource[CountryId]               ||
-                    `${this.#defaultResource["country"]}${CountryId.toLowerCase()}.svg`;
+    //             let resourcePath = 
+    //                 this.#defaultResource[CountryId.toLowerCase()] ||
+    //                 this.#defaultResource[CountryId.toUpperCase()] ||
+    //                 this.#defaultResource[CountryId]               ||
+    //                 `${this.#defaultResource["country"]}${CountryId.toLowerCase()}.svg`;
 
-                let svgCountryData = await this.#componentsCoutry.init (
-                    resourcePath,
-                    el
-                );
-                let svgCountry = svgCountryData["svgGroup"];
-                let viewBox    = svgCountryData["viewBox" ];
+    //             let svgCountryData = await this.#componentsCoutry.init (
+    //                 resourcePath,
+    //                 el
+    //             );
+    //             let svgCountry = svgCountryData["svgGroup"];
+    //             let viewBox    = svgCountryData["viewBox" ];
 
-                let pathChild = svgCountry.querySelectorAll("path");
-                let animateTransform = svgCountry.querySelectorAll("animateTransform");
+    //             let pathChild = svgCountry.querySelectorAll("path");
+    //             let animateTransform = svgCountry.querySelectorAll("animateTransform");
 
-                const parentBox = el.parentNode;
+    //             const parentBox = el.parentNode;
 
-                parentBox.parentNode.querySelector("defs").querySelector("style").textContent += `
-                .land:not(.map-country .land) {
-                    fill        : rgba(0, 0, 0, 0);
-                    background  : rgba(0, 0, 0, 0);
-                    transition  : all 0.5s;
-                }
+    //             parentBox.parentNode.querySelector("defs").querySelector("style").textContent += `
+    //             .land:not(.map-country .land) {
+    //                 fill        : rgba(0, 0, 0, 0);
+    //                 background  : rgba(0, 0, 0, 0);
+    //                 transition  : all 0.5s;
+    //             }
 
-                #${CountryId} {
-                    fill        : rgba(0, 0, 0, 0);
-                    background  : rgba(0, 0, 0, 0);
-                    transition  : all 1s;
-                }
-                `;
+    //             #${CountryId} {
+    //                 fill        : rgba(0, 0, 0, 0);
+    //                 background  : rgba(0, 0, 0, 0);
+    //                 transition  : all 1s;
+    //             }
+    //             `;
 
-                await new Promise(r => setTimeout(r, 500));
+    //             await new Promise(r => setTimeout(r, 500));
 
-                while(parentBox.firstChild) {
-                    parentBox.removeChild(parentBox.firstChild);
-                }
+    //             while(parentBox.firstChild) {
+    //                 parentBox.removeChild(parentBox.firstChild);
+    //             }
 
-                const animateViewBox = document.createElementNS("http://www.w3.org/2000/svg", "animate");
-                animateViewBox.setAttribute("attributeName", "viewBox");
-                animateViewBox.setAttribute("from", parentBox.parentNode.getAttribute("viewBox"));
-                animateViewBox.setAttribute("to", `${viewBox[0]} ${viewBox[1]} ${viewBox[2]} ${viewBox[3]}`);
-                animateViewBox.setAttribute("dur", "0.5s");
-                animateViewBox.setAttribute("fill", "freeze");
+    //             const animateViewBox = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+    //             animateViewBox.setAttribute("attributeName", "viewBox");
+    //             animateViewBox.setAttribute("from", parentBox.parentNode.getAttribute("viewBox"));
+    //             animateViewBox.setAttribute("to", `${viewBox[0]} ${viewBox[1]} ${viewBox[2]} ${viewBox[3]}`);
+    //             animateViewBox.setAttribute("dur", "0.5s");
+    //             animateViewBox.setAttribute("fill", "freeze");
 
-                parentBox.appendChild(svgCountry);
-                animateTransform.forEach(animate => {
-                    animate.beginElement();
-                });
+    //             parentBox.appendChild(svgCountry);
+    //             animateTransform.forEach(animate => {
+    //                 animate.beginElement();
+    //             });
 
-                setTimeout(() => {
-                    parentBox.parentNode.appendChild(animateViewBox);
-                    animateViewBox.beginElement();
-                }, 50);
-            }
-        }
-    }
+    //             setTimeout(() => {
+    //                 parentBox.parentNode.appendChild(animateViewBox);
+    //                 animateViewBox.beginElement();
+    //             }, 50);
+    //         }
+    //     }
+    // }
 
     /**
      * ## Load Map Resource Configuration File
@@ -229,152 +295,23 @@ class MapTracer extends HTMLElement {
      * @throws  {Error          } If the file cannot be loaded due to an error.
      * @private
      */
-    async #configuration (
-        configPath
-    ) {
-        try {
-            const config = await this.#mtTools.getJson(configPath);
-            if (!config?.world || !config?.country) {
-                throw new ReferenceError(
-                    `Invalid configuration: Missing required keys "world" or "country" in resource file "${configPath}".`
-                );
-            }
-            return config;
-        } catch (error) {
-            throw new Error(
-                `Failed to load resource configuration from: "${configPath}". Cause: ${error.message}`
-            );
-        }
-    }
-
-    /** 
-     * ## Initializes the component
-     * 
-     * @private
-     */
-    get #init () {
-        return {
-            /**
-             * ## Adjust Element Dimensions and Style Fixes
-             * ---
-             * 1. Retrieve the computed styles of the current element using `getComputedStyle()`.
-             * 2. Extract width, height, and related min/max dimensions, storing them in the `dimensions` object.
-             * 3. If both `width` and `height` are set to `auto`, adjust them based on constraints:
-             *    - Calculate `height`:
-             *      - If `max-height` is `none`:
-             *        - If `min-height` is `0px`, set `height` to `80dvh` (default height).
-             *        - Otherwise, use `min-height` as the `height`.
-             *      - Otherwise, use `max-height` as the `height`.
-             *    - Calculate `width`:
-             *      - If `max-width` is `none`:
-             *        - If `min-width` is `0px`, set `width` to `80vw` (default width).
-             *        - Otherwise, use `min-width` as the `width`.
-             *      - Otherwise, use `max-width` as the `width`.
-             * 
-             * 4. Apply style fixes:
-             *    - If `position` is `static` (default style or user-defined), change it to `relative` to ensure proper positioning.
-             *    - If `display`  is `inline` (default style or user-defined), change it to `block`    to ensure correct layout behavior.
-             * 
-             * 5. Iterate through `StyleFixes` to apply corrections:
-             *    - Retrieve the user-defined styles and apply fixes if they match the defined rules.
-             * 
-             */
-            style: () => {
-                /** The computed styles of the element */
-                const userStyle = getComputedStyle(this);
-                const dimensions = {
-                    width       : userStyle.getPropertyValue("width"        ),
-                    height      : userStyle.getPropertyValue("height"       ),
-                    minHeight   : userStyle.getPropertyValue("min-height"   ),
-                    maxHeight   : userStyle.getPropertyValue("max-height"   ),
-                    minWidth    : userStyle.getPropertyValue("min-width"    ),
-                    maxWidth    : userStyle.getPropertyValue("max-width"    ),
-                }
-                if (
-                    dimensions.width  === "auto" &&
-                    dimensions.height === "auto"
-                ) {
-                    this.style.height = dimensions.maxHeight === "none" ? (dimensions.minHeight === "0px" ? "80dvh" : dimensions.minHeight) : dimensions.maxHeight;
-                    this.style.width  = dimensions.maxWidth  === "none" ? (dimensions.minWidth  === "0px" ? "80vw"  : dimensions.minWidth ) : dimensions.minWidth ;
-                }
-                const StyleFixes = {
-                    position: (value) => (value === "static" ? "relative"   : ""),
-                    display : (value) => (value === "inline" ? "block"      : ""),
-                };
-                Object.entries(StyleFixes).forEach(([prop, fix]) => {
-                    const userValue = userStyle.getPropertyValue(prop);
-                    const newValue  = fix(userValue);
-                    if (newValue) this.style[prop] = newValue;
-                });
-            },
-
-            /**
-             * Handles element attributes by checking user-defined values  
-             * and applying default values if necessary.
-             * 
-             * - Retrieves attribute names from `#MapTracerAttribute`.
-             * - Checks if the attribute is missing, empty, or invalid.
-             * - Logs a warning if an attribute is unset and applies the default value.
-             * - Updates `#MapTracerAttribute` with the user-defined or default value.
-             */
-            attr: () => {
-                Object.keys(this.#MapTracerAttribute).forEach((attr) => {
-                    let userAttr = this.getAttribute(attr)?.trim();
-                    if (
-                        !userAttr               ||
-                        userAttr === ""         ||
-                        userAttr === "undefined"
-                    ) {
-                        console.warn(`The attribute [${attr}] is not set or empty, using default value: ${this.#MapTracerAttribute[attr]}`);
-                    }
-
-                    this.#MapTracerAttribute[attr] = userAttr || this.#MapTracerAttribute[attr];
-                });
-            },
-
-            /**
-             * ## Inject Inner Styles for MapTracer
-             * ---
-             * Dynamically generates and applies styles for the MapTracer world and its object.
-             */
-            innerStyle: () => {
-                let Style_MapTracer_World = `
-                /* MapTracer World */
-                #MapTracer-World {
-
-                    position: absolute;
-
-                    left  : 0;
-                    right : 0;
-                    top   : 0;
-                    bottom: 0;
-
-                    margin: auto;
-
-                    height: ${this.style.height};
-                    width : ${this.style.width };
-                }
-                `;
-
-                let Style_MapTracer_Obj = `
-                /* MapTracer World Object */
-                #MapTracer-World object {
-                    position   : absolute;
-                    left       : 0;
-                    right      : 0;
-                    top        : 0;
-                    bottom     : 0;
-                    margin     : auto;
-                    max-height : 100%;
-                    max-width  : 100%;
-                    will-change: transform;
-                }
-                `;
-
-                this.innerStyle = `${Style_MapTracer_World}${Style_MapTracer_Obj}`;
-            }
-        }
-    }
+    // async #configuration (
+    //     configPath
+    // ) {
+    //     try {
+    //         const config = await this.#mtTools.getJson(configPath);
+    //         if (!config?.world || !config?.country) {
+    //             throw new ReferenceError(
+    //                 `Invalid configuration: Missing required keys "world" or "country" in resource file "${configPath}".`
+    //             );
+    //         }
+    //         return config;
+    //     } catch (error) {
+    //         throw new Error(
+    //             `Failed to load resource configuration from: "${configPath}". Cause: ${error.message}`
+    //         );
+    //     }
+    // }
 }
 
 customElements.define("map-tracer", MapTracer);

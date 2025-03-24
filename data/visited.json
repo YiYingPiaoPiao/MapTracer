@@ -1,5 +1,23 @@
 {
-    "CN": {},
-    "MY": {},
-    "SG": {}
+    "CN": {
+        "BeiJing": [{
+            "img": "img1"
+        }, {
+            "img": "img2"
+        }],
+
+        "TianJin": [],
+
+        "HeBei": [{
+            "img": "img1"
+        }]
+    },
+    "MY": {
+        "Johor": []
+    },
+    "SG": {
+        "East": [{
+            "img": "img1"
+        }]
+    }
 }

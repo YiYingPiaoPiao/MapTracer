@@ -6,13 +6,18 @@ import { MapTracerCountry  as mtcCountry  } from "./MapTracerCountry.js";
 class MapTracer extends HTMLElement {
 
     defaultHost = "http://127.0.0.1:5500";
-    #Attributes = {
+    // defaultHost = "https://raw.githubusercontent.com/YiYingPiaoPiao/MapTracer/refs/heads/main";
+    #attributes = {
         "map-res"   : `${this.defaultHost}/data/resMap.json`    ,
         "map-style" : `${this.defaultHost}/src/styles/map.css`  ,
         "visited"   : `${this.defaultHost}/data/visited.json`
     }
 
     innerStyle;
+    
+    #dataMapTracer = {};
+
+    #mtTools = new mtTools();
 
     constructor () {
         super();
@@ -26,91 +31,138 @@ class MapTracer extends HTMLElement {
         const shadow = this.attachShadow({
             mode: "open"
         });
-        
+
+        await this.#data.visited(
+            this.#attributes.visited
+        );
+        console.log("Finished Worked");
     }
 
-    get #initialization () {
-        return {
-            attributes: () => {
-                Object.keys(this.#Attributes).forEach(
-                    (attribute) => {
-                        let attr = this.getAttribute(attribute)?.trim();
-                        if (
-                            !attr               ||
-                            attr === ""         ||
-                            attr === "undefined"
-                        ) {
-                            console.warn(`The attribute [${attribute}] is not set or empty, using default value:\n ${this.#Attributes[attribute]}`);
-                        }
-
-                        this.#Attributes[attribute] = attr || this.#Attributes[attribute];
+    #initialization = {
+        attributes: () => {
+            Object.keys(this.#attributes).forEach(
+                (attribute) => {
+                    let attr = this.getAttribute(attribute)?.trim();
+                    if (
+                        !attr               ||
+                        attr === ""         ||
+                        attr === "undefined"
+                    ) {
+                        console.warn(`The attribute [${attribute}] is not set or empty, using default value:\n ${this.#attributes[attribute]}`);
                     }
-                );
-                console.log(this.#Attributes);
-            },
 
-            styleTag: () => {
-                const userStyle = getComputedStyle(this);
-                const dimensions = {
-                    width       : userStyle.getPropertyValue("width"        ),
-                    height      : userStyle.getPropertyValue("height"       ),
-                    minHeight   : userStyle.getPropertyValue("min-height"   ),
-                    maxHeight   : userStyle.getPropertyValue("max-height"   ),
-                    minWidth    : userStyle.getPropertyValue("min-width"    ),
-                    maxWidth    : userStyle.getPropertyValue("max-width"    ),
+                    this.#attributes[attribute] = attr || this.#attributes[attribute];
                 }
-                if (
-                    dimensions.width  === "auto" &&
-                    dimensions.height === "auto"
-                ) {
-                    this.style.height = dimensions.maxHeight === "none" ? (dimensions.minHeight === "0px" ? "80dvh" : dimensions.minHeight) : dimensions.maxHeight;
-                    this.style.width  = dimensions.maxWidth  === "none" ? (dimensions.minWidth  === "0px" ? "80vw"  : dimensions.minWidth ) : dimensions.minWidth ;
-                }
-                const StyleFixes = {
-                    position: (value) => (value === "static" ? "relative"   : ""),
-                    display : (value) => (value === "inline" ? "block"      : ""),
-                };
-                Object.entries(StyleFixes).forEach(([prop, fix]) => {
-                    const userValue = userStyle.getPropertyValue(prop);
-                    const newValue  = fix(userValue);
-                    if (newValue) this.style[prop] = newValue;
-                });
-            },
+            );
+        },
 
-            styleInner: () => {
-                let style_Map_MapTracer = `
-                div.MapTracer-Map {
-
-                    position: absolute;
-
-                    left  : 0;
-                    right : 0;
-                    top   : 0;
-                    bottom: 0;
-
-                    margin: auto;
-
-                    height: ${this.style.height};
-                    width : ${this.style.width };
-                }
-                `;
-
-                let style_Object_MapTracer = `
-                div.MapTracer-Map object {
-                    position   : absolute;
-                    left       : 0;
-                    right      : 0;
-                    top        : 0;
-                    bottom     : 0;
-                    margin     : auto;
-                    max-height : 100%;
-                    max-width  : 100%;
-                    will-change: transform;
-                }
-                `;
-
-                this.innerStyle = `${style_Map_MapTracer}${style_Object_MapTracer}`
+        styleTag: () => {
+            const userStyle = getComputedStyle(this);
+            const dimensions = {
+                width       : userStyle.getPropertyValue("width"        ),
+                height      : userStyle.getPropertyValue("height"       ),
+                minHeight   : userStyle.getPropertyValue("min-height"   ),
+                maxHeight   : userStyle.getPropertyValue("max-height"   ),
+                minWidth    : userStyle.getPropertyValue("min-width"    ),
+                maxWidth    : userStyle.getPropertyValue("max-width"    ),
             }
+            if (
+                dimensions.width  === "auto" &&
+                dimensions.height === "auto"
+            ) {
+                this.style.height = dimensions.maxHeight === "none" ? (dimensions.minHeight === "0px" ? "80dvh" : dimensions.minHeight) : dimensions.maxHeight;
+                this.style.width  = dimensions.maxWidth  === "none" ? (dimensions.minWidth  === "0px" ? "80vw"  : dimensions.minWidth ) : dimensions.minWidth ;
+            }
+            const StyleFixes = {
+                position: (value) => (value === "static" ? "relative"   : ""),
+                display : (value) => (value === "inline" ? "block"      : ""),
+            };
+            Object.entries(StyleFixes).forEach(([prop, fix]) => {
+                const userValue = userStyle.getPropertyValue(prop);
+                const newValue  = fix(userValue);
+                if (newValue) this.style[prop] = newValue;
+            });
+        },
+
+        styleInner: () => {
+            let style_Map_MapTracer = `
+            div.MapTracer-Map {
+
+                position: absolute;
+
+                left  : 0;
+                right : 0;
+                top   : 0;
+                bottom: 0;
+
+                margin: auto;
+
+                height: ${this.style.height};
+                width : ${this.style.width };ss
+            }
+            `;
+
+            let style_Object_MapTracer = `
+            div.MapTracer-Map object {
+                position   : absolute;
+                left       : 0;
+                right      : 0;
+                top        : 0;
+                bottom     : 0;
+                margin     : auto;
+                max-height : 100%;
+                max-width  : 100%;
+                will-change: transform;
+            }
+            `;
+
+            this.innerStyle = `${style_Map_MapTracer}${style_Object_MapTracer}`
+        }
+    }
+
+    #data = {
+        visited: async (
+            path
+        ) => {
+            this.#dataMapTracer["country"] = [];
+
+            let dataTemp    = await this.#mtTools.getJson(path);
+            let listCountry = Object.keys(dataTemp);
+            
+            if (listCountry.length === 0) {
+                console.warn("Visited List in an empty list.");
+                return;
+            }
+
+            listCountry.forEach((country) => {
+                let dataCountry     = dataTemp[country];
+                let listProvince    = Object.keys(dataCountry);
+
+                if (listProvince.length === 0) {
+                    console.warn(`That have no province from Country: ${country}`);
+                    return;
+                }
+
+                listProvince.forEach((province) => {
+                    let dataProvince        = dataCountry[province];
+                    let dataProvinceLength  = dataProvince.length;
+                    if (
+                        dataProvinceLength === 0
+                    ) {
+                        console.log(`The province ${province} is not any data in this list.`);
+                        return;
+                    }
+
+                    if (!this.#dataMapTracer[country]) {
+                        this.#dataMapTracer["country"].push(country);
+                        this.#dataMapTracer[country] = [];
+                    }
+
+                    this.#dataMapTracer[country].push(province);
+                });
+            });
+
+            console.log(this.#dataMapTracer);
         }
     }
 

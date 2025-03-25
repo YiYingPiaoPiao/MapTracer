@@ -19,6 +19,8 @@ class MapTracer extends HTMLElement {
 
     #mtTools = new mtTools();
 
+    #mtWorld = new mtcWorld();
+
     constructor () {
         super();
 
@@ -32,14 +34,15 @@ class MapTracer extends HTMLElement {
             mode: "open"
         });
 
-        await this.#data.visited(
-            this.#attributes.visited
-        );
-        console.log("Finished Worked");
+        await this.#data.visited (this.#attributes["visited"]);
+        await this.#data.resource(this.#attributes["map-res"]);
+
+        console.log(this.#dataMapTracer);
     }
 
     #initialization = {
         attributes: () => {
+            let warnMsg = "";
             Object.keys(this.#attributes).forEach(
                 (attribute) => {
                     let attr = this.getAttribute(attribute)?.trim();
@@ -48,12 +51,16 @@ class MapTracer extends HTMLElement {
                         attr === ""         ||
                         attr === "undefined"
                     ) {
-                        console.warn(`The attribute [${attribute}] is not set or empty, using default value:\n ${this.#attributes[attribute]}`);
+                        warnMsg = `\t${attribute}: ${this.#attributes[attribute]}\n${warnMsg}`
                     }
 
                     this.#attributes[attribute] = attr || this.#attributes[attribute];
                 }
             );
+
+            if (warnMsg !== "") {
+                console.warn(`The data following below is not set or empty, that are using default value:\n${warnMsg}`);
+            }
         },
 
         styleTag: () => {
@@ -121,10 +128,22 @@ class MapTracer extends HTMLElement {
     }
 
     #data = {
+
+        resource: async (
+            path
+        ) => {
+            let dataTemp = await this.#mtTools.getJson(path);
+            this.#dataMapTracer.country.list.forEach((country) => {
+                
+            });
+        },
+
         visited: async (
             path
         ) => {
-            this.#dataMapTracer["country"] = [];
+            this.#dataMapTracer["country"] = {
+                list : []
+            };
 
             let dataTemp    = await this.#mtTools.getJson(path);
             let listCountry = Object.keys(dataTemp);
@@ -149,20 +168,23 @@ class MapTracer extends HTMLElement {
                     if (
                         dataProvinceLength === 0
                     ) {
-                        console.log(`The province ${province} is not any data in this list.`);
+                        console.warn(`The province ${province} is not any data in this list.`);
                         return;
                     }
 
-                    if (!this.#dataMapTracer[country]) {
-                        this.#dataMapTracer["country"].push(country);
-                        this.#dataMapTracer[country] = [];
+                    if (!this.#dataMapTracer.country[country]) {
+                        this.#dataMapTracer.country.list.push(country);
+                        this.#dataMapTracer.country[country] = {
+                            list: []
+                        };
                     }
 
-                    this.#dataMapTracer[country].push(province);
+                    this.#dataMapTracer.country[country].list.push(province);
+                    this.#dataMapTracer.country[country][province] = dataProvince;
                 });
             });
 
-            console.log(this.#dataMapTracer);
+            // console.log(this.#dataMapTracer);
         }
     }
 

@@ -38,6 +38,9 @@ class MapTracer extends HTMLElement {
         await this.#data.resource(this.#attributes["map-res"]);
 
         console.log(this.#dataMapTracer);
+        this.#mtWorld.init(
+            this.#dataMapTracer.world.res
+        );
     }
 
     #initialization = {
@@ -133,8 +136,18 @@ class MapTracer extends HTMLElement {
             path
         ) => {
             let dataTemp = await this.#mtTools.getJson(path);
+
+            if (
+                !dataTemp["world"]
+            ) {
+                throw new ReferenceError("The map resource 'world' can't be emtpy.");
+            }
+
+            this.#dataMapTracer["world"] = {
+                res: dataTemp.world
+            };
             this.#dataMapTracer.country.list.forEach((country) => {
-                
+                this.#dataMapTracer.country[country]["res"] = dataTemp[country] || `${dataTemp.country}${country}.svg`;
             });
         },
 

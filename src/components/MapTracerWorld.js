@@ -1,5 +1,7 @@
 export class MapTracerWorld {
 
+    #innerObject;
+
     constructor () {}
 
     init (

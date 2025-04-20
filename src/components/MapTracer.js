@@ -11,15 +11,16 @@ class MapTracer extends HTMLElement {
         "map-res"   : `${this.defaultHost}/data/resMap.json`    ,
         "map-style" : `${this.defaultHost}/src/styles/map.css`  ,
         "visited"   : `${this.defaultHost}/data/visited.json`
+        
     }
-
     innerStyle;
     
     #dataMapTracer = {};
 
     #mtTools = new mtTools();
 
-    #mtWorld = new mtcWorld();
+    #mtWorld   = new mtcWorld  ();
+    #mtCountry = new mtcCountry();
 
     constructor () {
         super();
@@ -37,10 +38,24 @@ class MapTracer extends HTMLElement {
         await this.#data.visited (this.#attributes["visited"]);
         await this.#data.resource(this.#attributes["map-res"]);
 
-        console.log(this.#dataMapTracer);
+        // Create World Map
+        const boxWorld = document.createElement("div");
+        boxWorld.classList.add("MapTracer-Map");
+
         this.#mtWorld.init(
-            this.#dataMapTracer.world.res
+            `${this.defaultHost}${this.#dataMapTracer.world.res}`
         );
+
+        // Create country map box
+
+        boxWorld.appendChild(this.#mtWorld.objectMap);
+
+        // Set default style for map and object
+        const style = document.createElement("style");
+        style.textContent = this.innerStyle;
+
+        shadow.appendChild(style);
+        shadow.appendChild(boxWorld);
     }
 
     #initialization = {
@@ -108,7 +123,7 @@ class MapTracer extends HTMLElement {
                 margin: auto;
 
                 height: ${this.style.height};
-                width : ${this.style.width };ss
+                width : ${this.style.width };
             }
             `;
 
@@ -169,7 +184,7 @@ class MapTracer extends HTMLElement {
             listCountry.forEach((country) => {
                 let dataCountry     = dataTemp[country];
                 let listProvince    = Object.keys(dataCountry);
-
+                
                 if (listProvince.length === 0) {
                     console.warn(`That have no province from Country: ${country}`);
                     return;

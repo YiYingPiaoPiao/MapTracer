@@ -1,13 +1,9 @@
-export class MapTracerWorld {
+import { MapTracerMap } from "./MapTracerMap.js";
 
-    #innerObject;
-
-    constructor () {}
-
-    init (
-        path
-    ) {
-        console.log(path);
+export class MapTracerWorld extends MapTracerMap {
+    
+    constructor () {
+        super();
     }
 }
 
@@ -22,31 +18,7 @@ export class MapTracerWorld {
 //             this.init(MapPath);
 //         }
 //     }
-    
-//     /**
-//      * Initializes the world map component.
-//      *
-//      * @param   {string} MapPath - The file path to the world map (SVG).
-//      * @returns {MapTracerWorld} The initialized MapTracerWorld instance.
-//      */
-//     init (
-//         MapPath
-//     ) {
-//         if (
-//             typeof MapPath !== "string" ||
-//             !MapPath.trim()             ||
-//             MapPath === "undefined"
-//         ) {
-//             throw new Error (
-//                 `The parameter "MapPath" is required and cannot be empty or "undefined". Ensure you are passing a valid map path.`
-//             );
-//         }
 
-//         // Create an object elements, and set data using svg.
-//         this.#MapTracerObj = document.createElement("object");
-//         this.#MapTracerObj.setAttribute("type", "image/svg+xml");
-//         this.#MapTracerObj.setAttribute("data", MapPath);
-//     }
 
 //     /**
 //      * 

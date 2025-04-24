@@ -3,7 +3,30 @@ import { MapTracerTools    as mtTools     } from "../script/Tools.js"   ;
 import { MapTracerWorld    as mtcWorld    } from "./MapTracerWorld.js"  ;
 import { MapTracerCountry  as mtcCountry  } from "./MapTracerCountry.js";
 
+import { state } from "../utils/state.js";
+import { STAGE, STATUS } from "../utils/enum.js";
+
 class MapTracer extends HTMLElement {
+
+    #state = new state();
+
+    constructor () {
+        super();
+    }
+
+    async connectedCallback () {
+        const shadow = this.attachShadow({
+            mode: "open"
+        });
+    }
+
+    async disconnectedCallback () {}
+    async connectedMoveCallback () {}
+    async adoptedCallback () {}
+    async attributeChangedCallback () {}
+}
+
+class MapTracerOld extends HTMLElement {
 
     defaultHost = "http://127.0.0.1:5500";
     // defaultHost = "https://raw.githubusercontent.com/YiYingPiaoPiao/MapTracer/refs/heads/main";
@@ -29,7 +52,7 @@ class MapTracer extends HTMLElement {
         this.#initialization.styleTag   ();
         this.#initialization.styleInner ();
     }
-
+ 
     async connectedCallback() {
         const shadow = this.attachShadow({
             mode: "open"

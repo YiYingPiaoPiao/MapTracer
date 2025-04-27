@@ -1,9 +1,15 @@
 export const STATUS = Enum({
-    INIT: "INIT"
+    INIT        : "INIT",
+    MAPS_WORLD  : "MAPS.WORLD",
+    MASP_COUNTRY: "MAPS.COUNTRY",
+
+    PHOTOS_OPENED: "PHOTOS.OPENEND"
 });
 
 export const STAGE = Enum({
-    INIT: "INIT"
+    INIT   : "INIT",
+    LOADING: "LOADING",
+    LOADED : "LOADED"
 });
 
 export function Enum(

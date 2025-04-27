@@ -10,7 +10,7 @@ export class state {
 
     constructor () {
         this.#currentState.status = STATUS.INIT;
-        this.#currentState.stage  = STAGE.INIT;
+        this.#currentState.stage  = STAGE.INIT ;
     }
 
     getCurrentState () {

@@ -12,12 +12,18 @@ class MapTracer extends HTMLElement {
 
     constructor () {
         super();
+        console.log(this.#state);
     }
 
     async connectedCallback () {
         const shadow = this.attachShadow({
             mode: "open"
         });
+        
+        // 1. Create an Elements for World maps
+        // 2. Create an Elements for Country maps and Init
+        // 3. Create an Elements for Traveled List on the shadow bottom.
+        // 4. Create the elements for photos.
     }
 
     async disconnectedCallback () {}

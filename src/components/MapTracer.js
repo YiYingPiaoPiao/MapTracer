@@ -30,12 +30,14 @@ class MapTracer extends HTMLElement {
         Box_ListTraveled.id = "Box-ListTraveled";
 
         const style = document.createElement("style");
-        console.log(style.isConnected);
         style.textContent = `
+            map-tracer {
+                border: 0.15em solid #FF0;
+            }
+
             #Box-MapWorld {
                 height: 100%;
                 width : 100%;
-                background: green;
             }
 
             object {

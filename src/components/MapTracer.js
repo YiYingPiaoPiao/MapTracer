@@ -11,6 +11,12 @@ class MapTracer extends HTMLElement {
             mode: "open"
         });
 
+        // Get Map Style
+        const path_StyleMaps = "/src/styles/map.css";
+        const styleMaps = document.createElement("style");
+        styleMaps.setAttribute("type", "text/css");
+        styleMaps.textContent = ` @import url('${path_StyleMaps}'); `;
+
         // World Maps
         const Box_MapsWorld = document.createElement("div");
         Box_MapsWorld.id = "Box-MapWorld";
@@ -50,6 +56,16 @@ class MapTracer extends HTMLElement {
         shadow.appendChild(Box_MapsWorld   );
         shadow.appendChild(Box_MapsCountry );
         shadow.appendChild(Box_ListTraveled);
+
+        let svg = await new Promise((resolve) => {
+            Obj_MapsWorld.addEventListener("load", () => {
+                let svg = Obj_MapsWorld.contentDocument;
+
+                svg.querySelector("defs").appendChild(styleMaps);
+
+                resolve(svg);
+            });
+        });
     }
 
     async disconnectedCallback () {}

@@ -42,13 +42,25 @@ class MapTracer extends HTMLElement {
             }
 
             #Box-MapWorld {
-                height: 100%;
+                position: absolute;
+
+                top: 0;
+
+                height: calc(100% - 4em);
                 width : 100%;
             }
 
             object {
                 width : 100%;
                 height: 100%;
+            }
+
+            #Box-ListTraveled {
+                height      : 4em;
+                width       : 100%;
+                background  : red;
+                position    : absolute;
+                bottom: 0;  
             }
         `;
         shadow.appendChild(style);
@@ -57,14 +69,27 @@ class MapTracer extends HTMLElement {
         shadow.appendChild(Box_MapsCountry );
         shadow.appendChild(Box_ListTraveled);
 
+        // Apply maps style
         let svg = await new Promise((resolve) => {
             Obj_MapsWorld.addEventListener("load", () => {
                 let svg = Obj_MapsWorld.contentDocument;
 
                 svg.querySelector("defs").appendChild(styleMaps);
-
                 resolve(svg);
             });
+        });
+        
+        let visited = await fetch("/data/visited.json").then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP Error! Status: ${response.status}`);
+            }
+
+            return response.json();
+        });
+
+        // Add class to visited places
+        Object.keys(visited).forEach(country => {
+            svg.querySelector(`#${country}`).classList.add("visited");
         });
     }
 

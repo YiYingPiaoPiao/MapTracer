@@ -11,6 +11,16 @@ class MapTracer extends HTMLElement {
             mode: "open"
         });
 
+        // Get Visited List
+        let visited = await fetch("/data/visited.json").then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP Error! Status: ${response.status}`);
+            }
+
+            return response.json();
+        });
+        console.log(visited);
+
         // Get Map Style
         const path_StyleMaps = "/src/styles/map.css";
         const styleMaps = document.createElement("style");
@@ -77,14 +87,6 @@ class MapTracer extends HTMLElement {
                 svg.querySelector("defs").appendChild(styleMaps);
                 resolve(svg);
             });
-        });
-        
-        let visited = await fetch("/data/visited.json").then(response => {
-            if (!response.ok) {
-                throw new Error(`HTTP Error! Status: ${response.status}`);
-            }
-
-            return response.json();
         });
 
         // Add class to visited places

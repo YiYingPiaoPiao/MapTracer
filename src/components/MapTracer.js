@@ -44,6 +44,18 @@ class MapTracer extends HTMLElement {
         // Traveled List
         const Box_ListTraveled = document.createElement("div");
         Box_ListTraveled.id = "Box-ListTraveled";
+        Object.keys(visited).forEach(country => {
+            let ListTraveled = document.createElement("span");
+
+            // Add class "visited" for easy handling
+            ListTraveled.classList.add("visited");
+
+            // Set id to country code
+            ListTraveled.setAttribute("id", country);
+            ListTraveled.textContent = country;
+
+            Box_ListTraveled.appendChild(ListTraveled);
+        });
 
         const style = document.createElement("style");
         style.textContent = `
@@ -66,11 +78,17 @@ class MapTracer extends HTMLElement {
             }
 
             #Box-ListTraveled {
-                height      : 4em;
+                height      : 2em;
                 width       : 100%;
                 background  : red;
                 position    : absolute;
-                bottom: 0;  
+                bottom      : 0;
+            }
+
+            #Box-ListTraveled span {
+                background: green;
+                font-size : 1.5em;
+                cursor    : pointer;
             }
         `;
         shadow.appendChild(style);
@@ -92,6 +110,30 @@ class MapTracer extends HTMLElement {
         // Add class to visited places
         Object.keys(visited).forEach(country => {
             svg.querySelector(`#${country}`).classList.add("visited");
+        });
+
+        // SVG Click Events
+        svg.addEventListener("click", (event) => {
+            
+            // Only response with visited area
+            if (!event.target.classList.contains("visited")) {
+                return;
+            }
+
+            // todo
+            console.log(event.target.id);
+        });
+
+        // Traveled List Click Events
+        Box_ListTraveled.addEventListener("click", (event) => {
+            
+            // Prevent responses outside the list
+            if (!event.target.classList.contains("visited")) {
+                return;
+            }
+
+            // todo
+            console.log(event.target.id);
         });
     }
 

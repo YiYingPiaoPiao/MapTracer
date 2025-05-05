@@ -48,7 +48,7 @@ class MapTracer extends HTMLElement {
             let ListTraveled = document.createElement("span");
 
             // Add class "visited" for easy handling
-            ListTraveled.classList.add("visited");
+            ListTraveled.classList.add("visited", "country");
 
             // Set id to country code
             ListTraveled.setAttribute("id", country);
@@ -109,7 +109,7 @@ class MapTracer extends HTMLElement {
 
         // Add class to visited places
         Object.keys(visited).forEach(country => {
-            svg.querySelector(`#${country}`).classList.add("visited");
+            svg.querySelector(`#${country}`).classList.add("visited", "country");
         });
 
         // SVG Click Events
@@ -120,8 +120,8 @@ class MapTracer extends HTMLElement {
                 return;
             }
 
-            // todo
-            console.log(event.target.id);
+            let areaCode = event.target.id;
+            this.mapsClick.country(areaCode);
         });
 
         // Traveled List Click Events
@@ -132,12 +132,22 @@ class MapTracer extends HTMLElement {
                 return;
             }
 
-            // todo
-            console.log(event.target.id);
+            let areaCode = event.target.id;
+            this.mapsClick.country(areaCode);
         });
     }
 
     async disconnectedCallback () {}
+
+    mapsClick = {
+        country: async (
+            countryCode
+        ) => {
+            // todo
+            // action after maps click
+            console.log(`Country Click ${countryCode}`);
+        }
+    }
 }
 
 customElements.define("map-tracer", MapTracer);

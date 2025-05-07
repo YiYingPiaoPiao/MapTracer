@@ -95,7 +95,7 @@ class MapTracer extends HTMLElement {
 
         shadow.appendChild(Box_MapsWorld   );
         shadow.appendChild(Box_MapsCountry );
-        shadow.appendChild(Box_ListTraveled);
+        // shadow.appendChild(Box_ListTraveled);
 
         // Apply maps style
         let svg = await new Promise((resolve) => {
@@ -120,8 +120,8 @@ class MapTracer extends HTMLElement {
                 return;
             }
 
-            let areaCode = event.target.id;
-            this.mapsClick.country(areaCode);
+            // let areaCode = event.target.id;
+            this.mapsClick.country(event.target);
         });
 
         // Traveled List Click Events
@@ -141,11 +141,23 @@ class MapTracer extends HTMLElement {
 
     mapsClick = {
         country: async (
-            countryCode
+            targetCountry
         ) => {
-            // todo
-            // action after maps click
-            console.log(`Country Click ${countryCode}`);
+
+            // Display Province Maps
+            let countryId = targetCountry.id;
+            let Box_MapsCountry = this.shadowRoot.querySelector("#Box-MapCountry");
+
+            let tempObj = Box_MapsCountry.querySelector("object");
+            if (tempObj !== null) {
+                Box_MapsCountry.removeChild(tempObj);
+            }
+
+            const countryObj = document.createElement("object");
+            countryObj.setAttribute("type", "image/svg+xml");
+            countryObj.setAttribute("data", `/src/res/maps/world/${countryId}.svg`);
+
+            Box_MapsCountry.appendChild(countryObj);
         }
     }
 }

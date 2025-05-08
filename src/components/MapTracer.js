@@ -158,6 +158,11 @@ class MapTracer extends HTMLElement {
             countryObj.setAttribute("data", `/src/res/maps/world/${countryId}.svg`);
 
             // Settings Country Position and Size
+            // Get Target Maps size in World Maps
+            let MapsWorld = this.shadowRoot.querySelector("#Box-MapWorld");
+            let targetMaps = MapsWorld.querySelector(`#${countryId}`);
+            console.log(targetMaps);
+
             
 
             Box_MapsCountry.appendChild(countryObj);

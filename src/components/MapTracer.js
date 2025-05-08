@@ -132,8 +132,8 @@ class MapTracer extends HTMLElement {
                 return;
             }
 
-            let areaCode = event.target.id;
-            this.mapsClick.country(areaCode);
+            // let areaCode = event.target.id;
+            this.mapsClick.country(event.target);
         });
     }
 
@@ -156,6 +156,9 @@ class MapTracer extends HTMLElement {
             const countryObj = document.createElement("object");
             countryObj.setAttribute("type", "image/svg+xml");
             countryObj.setAttribute("data", `/src/res/maps/world/${countryId}.svg`);
+
+            // Settings Country Position and Size
+            
 
             Box_MapsCountry.appendChild(countryObj);
         }

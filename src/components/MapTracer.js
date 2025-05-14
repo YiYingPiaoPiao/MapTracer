@@ -30,6 +30,7 @@ class MapTracer extends HTMLElement {
         // World Maps
         const Box_MapsWorld = document.createElement("div");
         Box_MapsWorld.id = "Box-MapWorld";
+        Box_MapsWorld.classList.add("MapTracer-Maps");
 
         const Obj_MapsWorld = document.createElement("object");
         Obj_MapsWorld.setAttribute("type", "image/svg+xml");
@@ -40,6 +41,7 @@ class MapTracer extends HTMLElement {
         // Country Maps
         const Box_MapsCountry = document.createElement("div");
         Box_MapsCountry.id = "Box-MapCountry";
+        Box_MapsCountry.classList.add("MapTracer-Maps");
 
         // Traveled List
         const Box_ListTraveled = document.createElement("div");
@@ -86,6 +88,13 @@ class MapTracer extends HTMLElement {
                 height: var(--country-H);
                 left  : var(--country-L);
                 top   : var(--country-T);
+            }
+
+            .MapTracer-Maps-Animation {
+                transition: all 0.5s;
+            }
+            .MapTracer-Maps-NoAnimation {
+                transition: none;
             }
 
             object {

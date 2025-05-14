@@ -57,6 +57,13 @@ class MapTracer extends HTMLElement {
             Box_ListTraveled.appendChild(ListTraveled);
         });
 
+        // Settings Country Maps position
+        document.documentElement.style.setProperty("--country-W", "0px");
+        document.documentElement.style.setProperty("--country-H", "0px");
+        document.documentElement.style.setProperty("--country-H", "0");
+        document.documentElement.style.setProperty("--country-H", "0");
+
+        // Set style
         const style = document.createElement("style");
         style.textContent = `
             map-tracer {
@@ -70,6 +77,15 @@ class MapTracer extends HTMLElement {
 
                 height: calc(100% - 4em);
                 width : 100%;
+            }
+
+            #Box-MapCountry {
+                position: absolute;
+
+                width : var(--country-W);
+                height: var(--country-H);
+                left  : var(--country-L);
+                top   : var(--country-T);
             }
 
             object {
@@ -166,8 +182,11 @@ class MapTracer extends HTMLElement {
             const baseRect = MapsWorld.getBoundingClientRect();
             const targetRect = targetMaps.getBoundingClientRect();
 
-            console.log(baseRect);
-            console.log(targetRect);
+            // Setting size and position
+            document.documentElement.style.setProperty("--country-H", `${targetRect.height}px`);
+            document.documentElement.style.setProperty("--country-W", `${targetRect.width}px`);
+            document.documentElement.style.setProperty("--country-L", `${targetRect.left}px`);
+            document.documentElement.style.setProperty("--country-T", `${targetRect.top}px`);
 
             Box_MapsCountry.appendChild(countryObj);
         }

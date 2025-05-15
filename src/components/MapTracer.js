@@ -1,5 +1,7 @@
 class MapTracer extends HTMLElement {
 
+    #visitedData = {}
+
     constructor () {
         super();
         
@@ -20,6 +22,7 @@ class MapTracer extends HTMLElement {
             return response.json();
         });
         console.log(visited);
+        this.#visitedData = visited;
 
         // Get Map Style
         const path_StyleMaps = "/src/styles/map.css";
@@ -41,7 +44,7 @@ class MapTracer extends HTMLElement {
         // Country Maps
         const Box_MapsCountry = document.createElement("div");
         Box_MapsCountry.id = "Box-MapCountry";
-        Box_MapsCountry.classList.add("MapTracer-Maps");
+        Box_MapsCountry.classList.add("MapTracer-Maps", "MapTracer-Maps-NoAnimation");
 
         // Traveled List
         const Box_ListTraveled = document.createElement("div");
@@ -90,16 +93,18 @@ class MapTracer extends HTMLElement {
                 top   : var(--country-T);
             }
 
-            .MapTracer-Maps-Animation {
+            .MapTracer-Maps {
                 transition: all 0.5s;
             }
-            .MapTracer-Maps-NoAnimation {
+            div.MapTracer-Maps-NoAnimation {
                 transition: none;
             }
 
             object {
                 width : 100%;
                 height: 100%;
+
+                will-change: transform;
             }
 
             #Box-ListTraveled {
@@ -178,6 +183,8 @@ class MapTracer extends HTMLElement {
                 Box_MapsCountry.removeChild(tempObj);
             }
 
+            let provinceVisited = this.#visitedData[countryId];
+
             const countryObj = document.createElement("object");
             countryObj.setAttribute("type", "image/svg+xml");
             countryObj.setAttribute("data", `/src/res/maps/world/${countryId}.svg`);
@@ -198,6 +205,30 @@ class MapTracer extends HTMLElement {
             document.documentElement.style.setProperty("--country-T", `${targetRect.top}px`);
 
             Box_MapsCountry.appendChild(countryObj);
+
+            // Get Visited Data
+            console.log(provinceVisited);
+            // let svg = await new Promise((resolve) => {
+            // Obj_MapsWorld.addEventListener("load", () => {
+            //     let svg = Obj_MapsWorld.contentDocument;
+
+            //         svg.querySelector("defs").appendChild(styleMaps);
+            //         resolve(svg);
+            //     });
+            // });
+
+            // // Add class to visited places
+            // Object.keys(visited).forEach(country => {
+            //     svg.querySelector(`#${country}`).classList.add("visited", "country");
+            // });
+            
+            // Sacale the Maps
+            await new Promise(resolve => setTimeout(resolve, 500));
+            Box_MapsCountry.classList.remove("MapTracer-Maps-NoAnimation");
+            document.documentElement.style.setProperty("--country-H", `calc(100% - 4em)`);
+            document.documentElement.style.setProperty("--country-W", `100%`);
+            document.documentElement.style.setProperty("--country-L", `0px`);
+            document.documentElement.style.setProperty("--country-T", `0px`);
         }
     }
 }

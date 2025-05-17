@@ -95,9 +95,13 @@ class MapTracer extends HTMLElement {
 
             .MapTracer-Maps {
                 transition: all 0.5s;
+                opacity: 1;
             }
             div.MapTracer-Maps-NoAnimation {
                 transition: none;
+            }
+            div.MapTracer-Maps-Hide {
+                opacity: 0;
             }
 
             object {
@@ -205,22 +209,27 @@ class MapTracer extends HTMLElement {
             document.documentElement.style.setProperty("--country-T", `${targetRect.top}px`);
 
             Box_MapsCountry.appendChild(countryObj);
+            MapsWorld.classList.add("MapTracer-Maps-Hide");
 
             // Get Visited Data
             console.log(provinceVisited);
-            // let svg = await new Promise((resolve) => {
-            // Obj_MapsWorld.addEventListener("load", () => {
-            //     let svg = Obj_MapsWorld.contentDocument;
+            let svg = await new Promise((resolve) => {
+                countryObj.addEventListener("load", () => {
+                    let svg = countryObj.contentDocument;
 
-            //         svg.querySelector("defs").appendChild(styleMaps);
-            //         resolve(svg);
-            //     });
-            // });
+                    const path_StyleMaps = "/src/styles/map.css";
+                    const styleMaps = document.createElement("style");
+                    styleMaps.setAttribute("type", "text/css");
+                    styleMaps.textContent = ` @import url('${path_StyleMaps}'); `;
 
-            // // Add class to visited places
-            // Object.keys(visited).forEach(country => {
-            //     svg.querySelector(`#${country}`).classList.add("visited", "country");
-            // });
+                    svg.querySelector("defs").appendChild(styleMaps);
+                    resolve(svg);
+                });
+            });
+
+            Object.keys(this.#visitedData[countryId]).forEach(province => {
+                svg.querySelector(`#${province}`).classList.add("visited", "province");
+            });
             
             // Sacale the Maps
             await new Promise(resolve => setTimeout(resolve, 500));

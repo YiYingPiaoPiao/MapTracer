@@ -30,7 +30,7 @@ class MapTracer extends HTMLElement {
         styleMaps.setAttribute("type", "text/css");
         styleMaps.textContent = ` @import url('${path_StyleMaps}'); `;
 
-        // World Maps
+        // Components - World Maps
         const Box_MapsWorld = document.createElement("div");
         Box_MapsWorld.id = "Box-MapWorld";
         Box_MapsWorld.classList.add("MapTracer-Maps");
@@ -41,12 +41,12 @@ class MapTracer extends HTMLElement {
 
         Box_MapsWorld.appendChild(Obj_MapsWorld);
 
-        // Country Maps
+        // Components - Country Maps
         const Box_MapsCountry = document.createElement("div");
         Box_MapsCountry.id = "Box-MapCountry";
         Box_MapsCountry.classList.add("MapTracer-Maps", "MapTracer-Maps-NoAnimation");
 
-        // Traveled List
+        // Components - Traveled List
         const Box_ListTraveled = document.createElement("div");
         Box_ListTraveled.id = "Box-ListTraveled";
         Object.keys(visited).forEach(country => {
@@ -62,6 +62,11 @@ class MapTracer extends HTMLElement {
             Box_ListTraveled.appendChild(ListTraveled);
         });
 
+        // Components - Back button
+        const Btn_Back = document.createElement("p");
+        Btn_Back.id = "Btn-Back";
+        Btn_Back.textContent = "Back";
+
         // Settings Country Maps position
         document.documentElement.style.setProperty("--country-W", "0px");
         document.documentElement.style.setProperty("--country-H", "0px");
@@ -73,6 +78,23 @@ class MapTracer extends HTMLElement {
         style.textContent = `
             map-tracer {
                 border: 0.15em solid #FF0;
+            }
+
+            #Btn-Back {
+                position: absolute;
+
+                border          : 0.15em solid #CCC;
+                border-radius   : 1em;
+                padding         : 0.25em 1em;
+
+                top : 1em;
+                left: 1em;
+
+                margin: auto;
+
+                cursor: pointer;
+
+                transition: all 0.5s;
             }
 
             #Box-MapWorld {
@@ -129,6 +151,7 @@ class MapTracer extends HTMLElement {
 
         shadow.appendChild(Box_MapsWorld   );
         shadow.appendChild(Box_MapsCountry );
+        shadow.appendChild(Btn_Back        );
         // shadow.appendChild(Box_ListTraveled);
 
         // Apply maps style

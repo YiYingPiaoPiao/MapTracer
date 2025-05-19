@@ -1,11 +1,19 @@
+class ComponentsStatus {
+    static INIT     = "Init"    ;
+    static WORLD    = "World"   ;
+    static COUNTRY  = "Country" ;
+}
+
 class MapTracer extends HTMLElement {
 
-    #visitedData = {}
+    #visitedData = {};
+    #componentsStatus = ComponentsStatus.INIT;
 
     constructor () {
         super();
         
         console.log("MapTracer Created!");
+        console.log(this.#componentsStatus);
     }
 
     async connectedCallback () {
@@ -169,6 +177,9 @@ class MapTracer extends HTMLElement {
             svg.querySelector(`#${country}`).classList.add("visited", "country");
         });
 
+        // Init done, change components status the World
+        this.#componentsStatus = ComponentsStatus.WORLD;
+
         // SVG Click Events
         svg.addEventListener("click", (event) => {
             
@@ -192,9 +203,26 @@ class MapTracer extends HTMLElement {
             // let areaCode = event.target.id;
             this.mapsClick.country(event.target);
         });
+
+        Btn_Back.addEventListener("click", (event) => {
+            this.backBtn_Click(event);
+        });
     }
 
     async disconnectedCallback () {}
+
+    // Back button click function
+    backBtn_Click (
+        event
+    ) {
+        this.backClick[this.#componentsStatus]();
+    }
+    backClick = {
+        World: async () => {
+            // console.log("Test");
+        }
+    }
+    // end of back button function
 
     mapsClick = {
         country: async (

@@ -218,8 +218,16 @@ class MapTracer extends HTMLElement {
         this.backClick[this.#componentsStatus]();
     }
     backClick = {
+        Init: async () => {
+            console.log("Current Stage: Init");
+        },
+
         World: async () => {
-            // console.log("Test");
+            console.log("Current Stage: World.");
+        },
+
+        Country: async () => {
+            console.log("Current Stage: Country.");
         }
     }
     // end of back button function

@@ -102,6 +102,9 @@ class MapTracer extends HTMLElement {
 
                 cursor: pointer;
 
+                opacity: 0;
+                pointer-events: none;
+
                 transition: all 0.5s;
             }
 
@@ -228,6 +231,11 @@ class MapTracer extends HTMLElement {
 
         Country: async () => {
             console.log("Current Stage: Country.");
+
+            // Change back button to hide status
+            const Btn_Back = this.shadowRoot.querySelector("#Btn-Back");
+            Btn_Back.style.opacity = 0;
+            Btn_Back.style.pointerEvents = "none";
         }
     }
     // end of back button function
@@ -297,6 +305,14 @@ class MapTracer extends HTMLElement {
             document.documentElement.style.setProperty("--country-W", `100%`);
             document.documentElement.style.setProperty("--country-L", `0px`);
             document.documentElement.style.setProperty("--country-T", `0px`);
+
+            // Change current stage.
+            this.#componentsStatus = ComponentsStatus.COUNTRY;
+
+            // Show back button when loaded.
+            const Btn_Back = this.shadowRoot.querySelector("#Btn-Back");
+            Btn_Back.style.opacity = 1;
+            Btn_Back.style.pointerEvents = "auto";
         }
     }
 }

@@ -9,6 +9,15 @@ class MapTracer extends HTMLElement {
     #visitedData = {};
     #componentsStatus = ComponentsStatus.INIT;
 
+    #mapsPrev = {
+        world: {
+            width : 0,
+            height: 0,
+            left  : 0,
+            top   : 0
+        }
+    };
+
     constructor () {
         super();
         
@@ -236,6 +245,27 @@ class MapTracer extends HTMLElement {
             const Btn_Back = this.shadowRoot.querySelector("#Btn-Back");
             Btn_Back.style.opacity = 0;
             Btn_Back.style.pointerEvents = "none";
+
+            // Setting size and position
+            document.documentElement.style.setProperty("--country-H", `${this.#mapsPrev.world.height}px`);
+            document.documentElement.style.setProperty("--country-W", `${this.#mapsPrev.world.width }px`);
+            document.documentElement.style.setProperty("--country-L", `${this.#mapsPrev.world.left  }px`);
+            document.documentElement.style.setProperty("--country-T", `${this.#mapsPrev.world.top   }px`);
+
+            await new Promise(resolve => setTimeout(resolve, 500));
+
+            let MapsWorld = this.shadowRoot.querySelector("#Box-MapWorld");
+            MapsWorld.classList.remove("MapTracer-Maps-Hide");
+
+            await new Promise(resolve => setTimeout(resolve, 250));
+            let Box_MapsCountry = this.shadowRoot.querySelector("#Box-MapCountry");
+            // Box_MapsCountry.classList.add("MapTracer-Maps-Hide");
+            Box_MapsCountry.removeChild(Box_MapsCountry.querySelector("object"));
+
+            document.documentElement.style.setProperty("--country-H", ``);
+            document.documentElement.style.setProperty("--country-W", ``);
+            document.documentElement.style.setProperty("--country-L", ``);
+            document.documentElement.style.setProperty("--country-T", ``);
         }
     }
     // end of back button function
@@ -269,11 +299,17 @@ class MapTracer extends HTMLElement {
             const baseRect = MapsWorld.getBoundingClientRect();
             const targetRect = targetMaps.getBoundingClientRect();
 
+            // Storing original data
+            this.#mapsPrev.world.height = targetRect.height;
+            this.#mapsPrev.world.width  = targetRect.width ;
+            this.#mapsPrev.world.top    = targetRect.top   ;
+            this.#mapsPrev.world.left   = targetRect.left  ;
+
             // Setting size and position
-            document.documentElement.style.setProperty("--country-H", `${targetRect.height}px`);
-            document.documentElement.style.setProperty("--country-W", `${targetRect.width}px`);
-            document.documentElement.style.setProperty("--country-L", `${targetRect.left}px`);
-            document.documentElement.style.setProperty("--country-T", `${targetRect.top}px`);
+            document.documentElement.style.setProperty("--country-H", `${this.#mapsPrev.world.height}px`);
+            document.documentElement.style.setProperty("--country-W", `${this.#mapsPrev.world.width }px`);
+            document.documentElement.style.setProperty("--country-L", `${this.#mapsPrev.world.left  }px`);
+            document.documentElement.style.setProperty("--country-T", `${this.#mapsPrev.world.top   }px`);
 
             Box_MapsCountry.appendChild(countryObj);
             MapsWorld.classList.add("MapTracer-Maps-Hide");

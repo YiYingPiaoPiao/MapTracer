@@ -2,6 +2,7 @@ class ComponentsStatus {
     static INIT     = "Init"    ;
     static WORLD    = "World"   ;
     static COUNTRY  = "Country" ;
+    static PROVINCE = "Province";
 }
 
 class MapTracer extends HTMLElement {
@@ -349,6 +350,28 @@ class MapTracer extends HTMLElement {
             const Btn_Back = this.shadowRoot.querySelector("#Btn-Back");
             Btn_Back.style.opacity = 1;
             Btn_Back.style.pointerEvents = "auto";
+
+            // Set click events for Province maps
+            svg.addEventListener("click", (event) => {
+                // Only response with visited area
+                if (!event.target.classList.contains("visited")) {
+                    return;
+                }
+
+                this.#componentsStatus = ComponentsStatus.PROVINCE;
+                this.mapsClick.province(countryId, event.target);
+            });
+        },
+
+        province: async (
+            parentCountry,
+            targetProvince
+        ) => {
+            
+            let provinceId = targetProvince.id;
+
+            console.log(`Country: ${parentCountry}, Province: ${provinceId}`);
+            console.log(this.#visitedData[parentCountry][provinceId]);
         }
     }
 }

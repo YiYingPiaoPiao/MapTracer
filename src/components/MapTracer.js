@@ -267,6 +267,16 @@ class MapTracer extends HTMLElement {
             document.documentElement.style.setProperty("--country-W", ``);
             document.documentElement.style.setProperty("--country-L", ``);
             document.documentElement.style.setProperty("--country-T", ``);
+
+            // Change current stage.
+            this.#componentsStatus = ComponentsStatus.WORLD;
+        },
+
+        Province: async () => {
+            console.log("Current Stage: Province.");
+            
+            // Change current stage.
+            this.#componentsStatus = ComponentsStatus.COUNTRY;
         }
     }
     // end of back button function

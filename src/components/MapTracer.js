@@ -173,7 +173,7 @@ class MapTracer extends HTMLElement {
         shadow.appendChild(Box_MapsWorld   );
         shadow.appendChild(Box_MapsCountry );
         shadow.appendChild(Btn_Back        );
-        // shadow.appendChild(Box_ListTraveled);
+        shadow.appendChild(Box_ListTraveled);
 
         // Apply maps style
         let svg = await new Promise((resolve) => {

@@ -85,6 +85,10 @@ class MapTracer extends HTMLElement {
         Btn_Back.id = "Btn-Back";
         Btn_Back.textContent = "Back";
 
+        // Components - Pictures
+        const Box_Photos = document.createElement("div");
+        Box_Photos.id = "Box-Photos";
+
         // Settings Country Maps position
         document.documentElement.style.setProperty("--country-W", "0px");
         document.documentElement.style.setProperty("--country-H", "0px");
@@ -167,13 +171,26 @@ class MapTracer extends HTMLElement {
                 font-size : 1.5em;
                 cursor    : pointer;
             }
+
+            #Box-Photos {
+                position: absolute;
+
+                width   : 100%;
+                height  : 100%;
+
+                top : 0;
+                left: 0;
+
+                pointer-events: none;
+            }
         `;
         shadow.appendChild(style);
 
         shadow.appendChild(Box_MapsWorld   );
         shadow.appendChild(Box_MapsCountry );
         shadow.appendChild(Btn_Back        );
-        shadow.appendChild(Box_ListTraveled);
+        shadow.appendChild(Box_Photos      );
+        // shadow.appendChild(Box_ListTraveled);
 
         // Apply maps style
         let svg = await new Promise((resolve) => {

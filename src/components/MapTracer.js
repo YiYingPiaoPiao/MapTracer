@@ -397,8 +397,12 @@ class MapTracer extends HTMLElement {
             
             let provinceId = targetProvince.id;
 
-            console.log(`Country: ${parentCountry}, Province: ${provinceId}`);
-            console.log(this.#visitedData[parentCountry][provinceId]);
+            const picturesList    = this.#visitedData[parentCountry][provinceId];
+            const picturesNumbers = picturesList.length;
+
+            if (picturesNumbers <= 0) {
+                return;
+            }
         }
     }
 }

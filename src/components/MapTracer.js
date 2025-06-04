@@ -88,6 +88,10 @@ class MapTracer extends HTMLElement {
         // Components - Pictures
         const Box_Photos = document.createElement("div");
         Box_Photos.id = "Box-Photos";
+        const boxLabels = document.createElement("div");
+        boxLabels.id = "Box-Photos-Labels";
+
+        Box_Photos.append(boxLabels);
 
         // Settings Country Maps position
         document.documentElement.style.setProperty("--country-W", "0px");
@@ -182,6 +186,11 @@ class MapTracer extends HTMLElement {
                 left: 0;
 
                 pointer-events: none;
+            }
+            #Box-Photos-Labels {
+                background: red;
+                height: 8em;
+                width : 100%;
             }
         `;
         shadow.appendChild(style);

@@ -88,10 +88,16 @@ class MapTracer extends HTMLElement {
         // Components - Pictures
         const Box_Photos = document.createElement("div");
         Box_Photos.id = "Box-Photos";
-        const boxLabels = document.createElement("div");
-        boxLabels.id = "Box-Photos-Labels";
 
-        Box_Photos.append(boxLabels);
+        // Create Photos Area and Labels Area
+        const Photos_Area_Photos = document.createElement("div");
+        const Photos_Area_Labels = document.createElement("div");
+        Photos_Area_Photos.id = "Photos-Area-Photos";
+        Photos_Area_Labels.id = "Photos-Area-Labels";
+
+        // Append two div to Photos components
+        Box_Photos.append(Photos_Area_Photos);
+        Box_Photos.append(Photos_Area_Labels);
 
         // Settings Country Maps position
         document.documentElement.style.setProperty("--country-W", "0px");
@@ -187,10 +193,30 @@ class MapTracer extends HTMLElement {
 
                 pointer-events: none;
             }
-            #Box-Photos-Labels {
-                background: red;
+
+            #Photos-Area-Photos {
+
+                position: absolute;
+
+                width   : 100%;
+                height  : 100%;
+
+                top     : 0;
+                bottom  : 0;
+                left    : 0;
+                right   : 0;
+
+                background: yellow;
+            }
+
+            #Photos-Area-Labels {
+
+                position: absolute;
+
+                bottom: 0;
+
+                width: 100%;
                 height: 8em;
-                width : 100%;
             }
         `;
         shadow.appendChild(style);
